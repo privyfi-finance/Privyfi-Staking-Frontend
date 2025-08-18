@@ -1,0 +1,14 @@
+.custom-wallet-btn {
+  width: 100%;
+  background-color: #f97316; /* orange-500 */
+  color: white;
+  padding: 0.75rem; /* py-3 */
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 500; /* font-medium */
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.custom-wallet-btn:hover {
+  background-color: #ea580c; /* orange-600 */
+}
