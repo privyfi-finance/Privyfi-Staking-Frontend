@@ -56,9 +56,9 @@ end
 `;
 
 export async function return_borrow(amount: number): Promise<void> {
-  const USER_ID = process.env.USER_ID || "0xa014b8e02a130e1032b4e6b0824617";
-  const ADMIN_ID = process.env.ADMIN_ID || "0x2c7713208c2a39107164424992d5c0";
-  const FAUCET_ID = process.env.FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
+  const USER_ID = process.env.PUBLIC_NEXT_USER_ID || "0xa014b8e02a130e1032b4e6b0824617";
+  const ADMIN_ID = process.env.PUBLIC_NEXT_ADMIN_ID || "0x2c7713208c2a39107164424992d5c0";
+  const FAUCET_ID = process.env.PUBLIC_NEXT_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
   const FAUCET_ID2 =
     process.env.FAUCET_ID2 || "0xe62152de7f96cb202fb80fa1d0fe83";
 

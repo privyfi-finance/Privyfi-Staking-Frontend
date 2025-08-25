@@ -28,8 +28,8 @@ export async function mint(): Promise<void> {
     OutputNote,
   } = await import("@demox-labs/miden-sdk");
 
-  const USER_ID = process.env.USER_ID || "0xa014b8e02a130e1032b4e6b0824617";
-  const FAUCET_ID = process.env.FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
+  const USER_ID = process.env.PUBLIC_NEXT_USER_ID || "0xa014b8e02a130e1032b4e6b0824617";
+  const FAUCET_ID = process.env.PUBLIC_NEXT_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
 
   const client = await WebClient.createClient(
     "https://rpc.testnet.miden.io:443"
@@ -39,6 +39,40 @@ export async function mint(): Promise<void> {
   );
 
   console.log("Latest block:", (await client.syncState()).blockNum());
+
+
+  // const alice = await client.newWallet(AccountStorageMode.public(), true);
+  // console.log("Alice ID:", alice.id().toString());
+
+
+  //   const bob = await client.newWallet(AccountStorageMode.public(), true);
+  // console.log("bob ID:", bob.id().toString());
+
+
+  // const faucet1 = await client.newFaucet(
+  //   AccountStorageMode.public(),
+  //   false,
+  //   "ATI",
+  //   8,
+  //   BigInt(1_000_000_000),
+  // );
+  // console.log("Faucet ID:", faucet1.id().toString());
+
+
+  // const faucet2 = await client.newFaucet(
+  //   AccountStorageMode.public(),
+  //   false,
+  //   "USDC",
+  //   8,
+  //   BigInt(1_000_000_000),
+  // );
+  // console.log("Faucet ID:", faucet2.id().toString());
+
+
+
+
+
+
 
   // ── Creating new account ──────────────────────────────────────────────────────
 
