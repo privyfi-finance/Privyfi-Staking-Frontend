@@ -7,6 +7,8 @@ import StakePage from "@/components/pages/stake-page"
 import WithdrawalsPage from "@/components/pages/withdrawals-page"
 import WrapPage from "@/components/pages/wrap-page"
 import RewardsPage from "@/components/pages/rewards-page"
+import LendPage from "@/components/pages/lend-page"
+import BorrowPage from "@/components/pages/borrow-page"
 
 export default function StakingApp() {
   const [activeTab, setActiveTab] = useState("stake")
@@ -24,6 +26,10 @@ export default function StakingApp() {
         return <WithdrawalsPage isConnected={isConnected} onConnect={handleConnect} />
       case "wrap":
         return <WrapPage />
+      case "lend":
+        return <LendPage />
+      case "borrow":
+        return <BorrowPage />
       case "rewards":
         return <RewardsPage />
       default:

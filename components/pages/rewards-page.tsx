@@ -1,15 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Info } from "lucide-react"
+// import { Info } from "lucide-react"
 import { getUserHistory, getUserStats } from "@/lib/db"
 import {
-  useWallet,
-  ConsumeTransaction,
-  WalletNotConnectedError,
-  MidenWalletAdapter,
-  SendTransaction,
+  useWallet
 } from "@demox-labs/miden-wallet-adapter";
+import dayjs from "dayjs"; 
 
 interface RewardsPageProps {
   isConnected: boolean
@@ -17,20 +14,25 @@ interface RewardsPageProps {
 }
 
 export default function RewardsPage({ isConnected, onConnect }: RewardsPageProps) {
-  const { accountId} = useWallet();
-  const [address, setAddress] = useState("")
+  const { accountId, wallet } = useWallet();
+  const [history, setHistory] = useState<any[]>([]);
+
   useEffect(() => {
-    fetchData(address)
-  })
+    if (accountId) fetchData(accountId);
+  }, [accountId]);
+
   async function fetchData(address: string) {
-    
-    const userHistory = await getUserHistory(accountId ?? "");
-    console.log(userHistory);
-
-    const userStats = await getUserStats(accountId ?? "");
-    console.log(userStats);
-
+    try {
+      const userHistory = await getUserHistory(address);
+      console.log(userHistory,"userHistory")
+      setHistory(userHistory);
+      const userStats = await getUserStats(address);
+      console.log(userStats);
+    } catch (error) {
+      console.error("Failed to fetch data", error);
+    }
   }
+  console.log(history,"history")
   return (
     <div className="max-w-4xl mx-auto">
       {/* Rewards Section */}
@@ -39,10 +41,10 @@ export default function RewardsPage({ isConnected, onConnect }: RewardsPageProps
         <p className="text-gray-600">Track your Ethereum staking rewards with PrivyFi</p>
       </div>
 
-      {/* Main Rewards Card */}
+      {/* Main Rewards Card 
       <div className="bg-gradient-to-br from-amber-900 to-amber-800 rounded-lg shadow-lg mb-8 overflow-hidden">
         <div className="p-6">
-          {/* Address Input */}
+          {/* Address Input
           <div className="mb-6">
             <input
               type="text"
@@ -53,7 +55,7 @@ export default function RewardsPage({ isConnected, onConnect }: RewardsPageProps
             />
           </div>
 
-          {/* Stats Grid */}
+          {/* Stats Grid 
           <div className="bg-white rounded-lg p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
@@ -82,27 +84,45 @@ export default function RewardsPage({ isConnected, onConnect }: RewardsPageProps
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Reward History Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold mb-6">Reward history</h2>
-
-          {/* Empty State */}
-          <div className="text-center py-12">
-            <p className="text-gray-600 mb-6">Connect your wallet or enter your Ethereum address to see the stats.</p>
-            {!isConnected && (
-              <button
-                onClick={onConnect}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium"
-              >
-                Connect wallet
-              </button>
-            )}
-          </div>
+       {!wallet ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-6">
+                Connect your wallet or enter your Ethereum address to see the stats.
+              </p>
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 font-medium text-gray-700">Action</th>
+                  <th className="px-4 py-3 font-medium text-gray-700">Amount</th>
+                  <th className="px-4 py-3 font-medium text-gray-700">Created At</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {history.length > 0 ? (
+                  history.map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-gray-900">{item.action}</td>
+                      <td className="px-4 py-3 text-gray-700">{item.amount}</td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-6 text-center text-gray-500">
+                      No reward history found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
-      </div>
-    </div>
   )
 }

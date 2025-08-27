@@ -13,7 +13,7 @@ interface NavigationProps {
 export default function Navigation({ activeTab, onTabChange, isConnected, onConnect }: NavigationProps) {
   const tabs = [
     { id: "stake", label: "STAKE", icon: Flame },
-    { id: "wrap", label: "WRAP", icon: Package },
+    // { id: "wrap", label: "WRAP", icon: Package },
     { id: "withdrawals", label: "WITHDRAWALS", icon: ArrowDownUp },
     { id: "lend", label: "LEND", icon: ArrowDownUp },
     { id: "borrow", label: "BORROW", icon: ArrowDownUp },
