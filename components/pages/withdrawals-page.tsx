@@ -21,7 +21,7 @@ export default function WithdrawalsPage({ isConnected, onConnect }: WithdrawalsP
   const [isLoading, setIsLoading] = useState(false);
   const [withdrawalTab, setWithdrawalTab] = useState("request");
   const [withdrawalMethod, setWithdrawalMethod] = useState("privyfi");
-  const { accountId } = useWallet();
+  const { accountId, wallet } = useWallet();
 
   console.log(accountId, "accountIdwitdraw")
   const handleMaxClick = () => {
@@ -29,6 +29,14 @@ export default function WithdrawalsPage({ isConnected, onConnect }: WithdrawalsP
   }
 
   const handleWithdraw = async (id: string, amount: number): Promise<void> => {
+    if (!wallet) {
+      toast.error("Please connect the wallet first");
+      return;
+    }
+    if (!amount) {
+      toast.error("Withdrawal amount is required");
+      return;
+    }
     setIsLoading(true);
 
     const result = await withdraw(id, amount);
@@ -40,7 +48,7 @@ export default function WithdrawalsPage({ isConnected, onConnect }: WithdrawalsP
     }
     setIsLoading(false);
   };
-  
+
   const handleClaim = async (id: string): Promise<void> => {
     setIsLoading(true);
 
