@@ -9,9 +9,12 @@ import WrapPage from "@/components/pages/wrap-page"
 import RewardsPage from "@/components/pages/rewards-page"
 import LendPage from "@/components/pages/lend-page"
 import BorrowPage from "@/components/pages/borrow-page"
+import FaucetPage from "@/components/pages/faucet-page"
+import WithdawLendPage from "@/components/pages/lend-withdraw"
+import ReturnBorrowPage from "@/components/pages/return-borrow"
 
 export default function StakingApp() {
-  const [activeTab, setActiveTab] = useState("stake")
+  const [activeTab, setActiveTab] = useState("faucet")
   const [isConnected, setIsConnected] = useState(false)
 
   const handleConnect = () => {
@@ -20,6 +23,8 @@ export default function StakingApp() {
 
   const renderActivePage = () => {
     switch (activeTab) {
+      case "faucet":
+        return <FaucetPage />
       case "stake":
         return <StakePage isConnected={isConnected} onConnect={handleConnect} />
       case "withdrawals":
@@ -28,12 +33,16 @@ export default function StakingApp() {
         return <WrapPage />
       case "lend":
         return <LendPage />
+      case "withdraw_lend":
+        return <WithdawLendPage />
+      case "return_borrow":
+        return <ReturnBorrowPage />
       case "borrow":
         return <BorrowPage />
       case "rewards":
         return <RewardsPage />
       default:
-        return <StakePage isConnected={isConnected} onConnect={handleConnect} />
+        return <FaucetPage isConnected={isConnected} onConnect={handleConnect} />
     }
   }
 
