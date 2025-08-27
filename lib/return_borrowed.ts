@@ -55,85 +55,25 @@ begin
 end
 `;
 
-export async function return_borrow(amount: number): Promise<void> {
-  const USER_ID = process.env.PUBLIC_NEXT_USER_ID || "0xa014b8e02a130e1032b4e6b0824617";
-  const ADMIN_ID = process.env.PUBLIC_NEXT_ADMIN_ID || "0x2c7713208c2a39107164424992d5c0";
-  const FAUCET_ID = process.env.PUBLIC_NEXT_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
-  const FAUCET_ID2 =
-    process.env.FAUCET_ID2 || "0xe62152de7f96cb202fb80fa1d0fe83";
-
-  const data = await checkReturnableBorrows(USER_ID);
-  if (!data.canReturn) {
-    console.error(
-      "You have unreturned borrow(s). Please return them before borrowing again."
-    );
-    return;
-  }
-  amount = Math.min(amount, data.totalReturnable);
-
+export async function return_borrow(USER_ID: string, amount: number): Promise<void> {
   // Ensure this runs only in a browser context
   if (typeof window === "undefined") return console.warn("Run in browser");
 
   const {
     WebClient,
-    AccountStorageMode,
     AccountId,
     NoteType,
     TransactionProver,
-    NoteInputs,
-    Note,
-    NoteAssets,
-    NoteRecipient,
-    Word,
-    OutputNotesArray,
-    NoteExecutionHint,
-    NoteTag,
-    NoteExecutionMode,
-    NoteMetadata,
-    FeltArray,
-    Felt,
-    FungibleAsset,
-    NoteAndArgsArray,
-    NoteAndArgs,
-    TransactionRequestBuilder,
-    OutputNote,
+    AccountStorageMode
   } = await import("@demox-labs/miden-sdk");
 
-  const client = await WebClient.createClient(
-    "https://rpc.testnet.miden.io:443"
-  );
-  const prover = TransactionProver.newRemoteProver(
-    "https://tx-prover.testnet.miden.io"
-  );
+
+  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
+  const client = await WebClient.createClient(nodeEndpoint);
+
+  const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID2 || "0xf8359b8753f46a207cb1fc0b50aee6";
 
   console.log("Latest block:", (await client.syncState()).blockNum());
-
-  // ── Creating new account ──────────────────────────────────────────────────────
-  console.log("Creating accounts");
-
-  console.log("Creating account for User");
-  const userId = AccountId.fromHex(USER_ID);
-  // const user = await client.newWallet(AccountStorageMode.public(), true);
-  const user = await client.getAccount(userId);
-  if (!user) {
-    console.error(
-      "Failed to fetch User's account. Please check the account ID."
-    );
-    return;
-  }
-  console.log("User accout ID:", user.id().toString());
-
-  const adminId = AccountId.fromHex(ADMIN_ID);
-  // const admin = await client.newWallet(AccountStorageMode.public(), true);
-  const admin = await client.getAccount(adminId);
-  if (!admin) {
-    console.error(
-      "Failed to fetch Admin's account. Please check the account ID."
-    );
-    return;
-  }
-  // const admin = await client.newWallet(AccountStorageMode.public(), true);
-  console.log("Admin accout ID:", admin.id().toString());
 
   const faucetId = AccountId.fromHex(FAUCET_ID);
   const faucet = await client.getAccount(faucetId);
@@ -145,161 +85,25 @@ export async function return_borrow(amount: number): Promise<void> {
   }
   console.log("Faucet ID:", faucet.id().toString());
 
-  const faucetId2 = AccountId.fromHex(FAUCET_ID2);
-  const faucet2 = await client.getAccount(faucetId2);
-  if (!faucet2) {
-    console.error(
-      "Failed to fetch Faucet's 2 account. Please check the account ID."
-    );
-    return;
-  }
-  console.log("Faucet ID:", faucet2.id().toString());
-
-  const script = client.compileNoteScript(P2ID_NOTE_SCRIPT);
-
-  // ── Create unauthenticated note transfer chain ─────────────────────────────────────────────
-
-  // Determine sender and receiver for this iteration
-  const sender = user;
-  const receiver = admin;
-
-  console.log("Sender:", sender.id().toString());
-  console.log("Receiver:", receiver.id().toString());
-
-  const assets = new NoteAssets([
-    new FungibleAsset(faucet.id(), BigInt(Math.floor(amount / 2))),
-  ]);
-  const metadata = new NoteMetadata(
-    sender.id(),
+  const returnAmount = BigInt(amount * 2);
+  console.log("Returning", returnAmount, "to user:", USER_ID);
+  
+  let mintTxRequest = client.newMintTransactionRequest(
+    AccountId.fromBech32(USER_ID),
+    faucet.id(),
     NoteType.Public,
-    NoteTag.fromAccountId(sender.id(), NoteExecutionMode.newLocal()),
-    NoteExecutionHint.always()
+    BigInt(returnAmount),
   );
+  
+  let txResult = await client.newTransaction(faucet.id(), mintTxRequest);
+  
+  await client.submitTransaction(txResult);
 
-  let serialNumber = Word.newFromFelts([
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-  ]);
+  console.log("Waiting 10 seconds for transaction confirmation...");
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  await client.syncState();
 
-  const receiverAcct = AccountId.fromHex(receiver.id().toString());
-  const inputs = new NoteInputs(
-    new FeltArray([receiverAcct.suffix(), receiverAcct.prefix()])
-  );
-
-  let p2idNote = new Note(
-    assets,
-    metadata,
-    new NoteRecipient(serialNumber, script, inputs)
-  );
-
-  let outputP2ID = OutputNote.full(p2idNote);
-
-  console.log("Creating P2ID note...");
-  let transaction = await client.newTransaction(
-    sender.id(),
-    new TransactionRequestBuilder()
-      .withOwnOutputNotes(new OutputNotesArray([outputP2ID]))
-      .build()
-  );
-  await client.submitTransaction(transaction, prover);
-
-  console.log("Consuming P2ID note...");
-
-  let noteIdAndArgs = new NoteAndArgs(p2idNote, null);
-
-  let consumeRequest = new TransactionRequestBuilder()
-    .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
-    .build();
-
-  let txExecutionResult = await client.newTransaction(
-    receiver.id(),
-    consumeRequest
-  );
-
-  await client.submitTransaction(txExecutionResult, prover);
-
-  const txId = txExecutionResult.executedTransaction().id().toHex().toString();
-
-  console.log(
-    `Consumed Note Tx on MidenScan: https://testnet.midenscan.com/tx/${txId}`
-  );
-
-  console.log("Asset transfer for faucet 2 completed ✅");
-
-  // ── Create unauthenticated note transfer chain ─────────────────────────────────────────────
-
-  // Determine sender and receiver for this iteration
-  const sender1 = admin;
-  const receiver1 = user;
-
-  console.log("Sender:", sender1.id().toString());
-  console.log("Receiver:", receiver1.id().toString());
-
-  const assets1 = new NoteAssets([
-    new FungibleAsset(faucet2.id(), BigInt(amount * 2)),
-  ]);
-  const metadata1 = new NoteMetadata(
-    sender1.id(),
-    NoteType.Public,
-    NoteTag.fromAccountId(sender1.id(), NoteExecutionMode.newLocal()),
-    NoteExecutionHint.always()
-  );
-
-  let serialNumber1 = Word.newFromFelts([
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-  ]);
-
-  const receiverAcct1 = AccountId.fromHex(receiver1.id().toString());
-  const inputs1 = new NoteInputs(
-    new FeltArray([receiverAcct1.suffix(), receiverAcct1.prefix()])
-  );
-
-  let p2idNote1 = new Note(
-    assets1,
-    metadata1,
-    new NoteRecipient(serialNumber1, script, inputs1)
-  );
-
-  let outputP2ID1 = OutputNote.full(p2idNote1);
-
-  console.log("Creating P2ID note...");
-  let transaction1 = await client.newTransaction(
-    sender1.id(),
-    new TransactionRequestBuilder()
-      .withOwnOutputNotes(new OutputNotesArray([outputP2ID1]))
-      .build()
-  );
-  await client.submitTransaction(transaction1, prover);
-
-  console.log("Consuming P2ID note...");
-
-  let noteIdAndArgs1 = new NoteAndArgs(p2idNote1, null);
-
-  let consumeRequest1 = new TransactionRequestBuilder()
-    .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs1]))
-    .build();
-
-  let txExecutionResult1 = await client.newTransaction(
-    receiver1.id(),
-    consumeRequest1
-  );
-
-  await client.submitTransaction(txExecutionResult1, prover);
-
-  const txId1 = txExecutionResult1
-    .executedTransaction()
-    .id()
-    .toHex()
-    .toString();
-
-  console.log(
-    `Consumed Note Tx on MidenScan: https://testnet.midenscan.com/tx/${txId1}`
-  );
+  console.log("Transaction confirmed. Asset transfer chain completed ✅");
 
   console.log("borrow transfer completed ✅");
 

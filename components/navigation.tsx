@@ -1,6 +1,7 @@
 "use client"
 
 import { Flame, Package, ArrowDownUp, Gift } from "lucide-react"
+import { WalletMultiButton, useWallet} from "@demox-labs/miden-wallet-adapter";
 
 interface NavigationProps {
   activeTab: string
@@ -14,9 +15,10 @@ export default function Navigation({ activeTab, onTabChange, isConnected, onConn
     { id: "stake", label: "STAKE", icon: Flame },
     { id: "wrap", label: "WRAP", icon: Package },
     { id: "withdrawals", label: "WITHDRAWALS", icon: ArrowDownUp },
+    { id: "lend", label: "LEND", icon: ArrowDownUp },
+    { id: "borrow", label: "BORROW", icon: ArrowDownUp },
     { id: "rewards", label: "REWARDS", icon: Gift },
   ]
-
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 py-4">
@@ -45,13 +47,7 @@ export default function Navigation({ activeTab, onTabChange, isConnected, onConn
               })}
             </nav>
           </div>
-          <button
-            onClick={onConnect}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50"
-            disabled={isConnected}
-          >
-            {isConnected ? "Wallet Connected" : "Connect wallet"}
-          </button>
+         <WalletMultiButton />
         </div>
       </div>
     </header>

@@ -4,11 +4,11 @@
 import { Client } from "pg";
 
 const client = new Client({
-  host: process.env.PUBLIC_NEXT_PG_HOST || "localhost",
-  port: Number(process.env.PUBLIC_NEXT_PG_PORT) || 5432,
-  user: process.env.PUBLIC_NEXT_PG_USER || "postgres",
-  password: process.env.PUBLIC_NEXT_PG_PASSWORD || "password",
-  database: process.env.PUBLIC_NEXT_PG_DATABASE || "miden",
+  host: process.env.NEXT_PUBLIC_PG_HOST || "localhost",
+  port: Number(process.env.NEXT_PUBLIC_PG_PORT) || 5432,
+  user: process.env.NEXT_PUBLIC_PG_USER || "postgres",
+  password: process.env.NEXT_PUBLIC_PG_PASSWORD || "password",
+  database: process.env.NEXT_PUBLIC_PG_DATABASE || "miden",
   ssl: {
     rejectUnauthorized: false, // Neon uses SSL but doesn’t require CA verification
   },

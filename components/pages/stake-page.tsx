@@ -4,9 +4,16 @@ import { useState } from "react"
 import { Info } from "lucide-react"
 import StatisticsSection from "../statistics-section"
 import FAQSection from "../faq-section"
-import { WalletMultiButton } from "@demox-labs/miden-wallet-adapter-reactui";
-import { useWallet } from "@demox-labs/miden-wallet-adapter-react";
-import { stake } from "@/lib/stake"
+import { upsertUser } from "@/lib/db"
+import { toast } from 'react-toastify';
+import { ClipLoader } from "react-spinners";
+import {
+  useWallet,
+  ConsumeTransaction,
+  WalletNotConnectedError,
+  MidenWalletAdapter,
+  SendTransaction,
+} from "@demox-labs/miden-wallet-adapter";
 
 interface StakePageProps {
   isConnected: boolean
@@ -15,10 +22,58 @@ interface StakePageProps {
 
 export default function StakePage({ isConnected, onConnect }: StakePageProps) {
   const [ethAmount, setEthAmount] = useState("")
+  const { wallet, accountId } = useWallet();
+  const [isLoading, setIsLoading] = useState(false);
+  const [adminPublicKey, setAdminPublicKey] = useState(process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY);
+  const [faucetPublicKey, setFaucetPublicKey] = useState(process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY);
 
   const handleMaxClick = () => {
     setEthAmount("32.0")
   }
+
+  const stakeTransaction = async (amount: number) => {
+    if (!wallet) {
+      toast.error("Please connect the wallet first");
+      return;
+    }
+
+    if (!amount) {
+      toast.error("Amount is required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      console.log("Staking", amount, "ETH for user:", adminPublicKey, faucetPublicKey);
+      const midenTransaction = new SendTransaction(
+        accountId ?? "",
+        adminPublicKey ?? "",
+        faucetPublicKey ?? "",
+        "public",
+        amount
+      );
+      toast.success("Transaction Requested")
+      const txId =
+        (await (wallet?.adapter as MidenWalletAdapter).requestSend(
+          midenTransaction
+        )) || "";
+
+      await new Promise((r) => setTimeout(r, 10_000));
+      upsertUser(accountId || "", amount);
+      console.log("Stake transaction sent with ID:", txId);
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 60_000);
+      toast.success("Please claim the transaction in Miden wallet");
+      setEthAmount("");
+    } catch (error) {
+      console.error("Error during staking:", error);
+      toast.error("Staking failed!");
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -53,14 +108,9 @@ export default function StakePage({ isConnected, onConnect }: StakePageProps) {
                   MAX
                 </button>
               </div>
-
-              {!isConnected ? (
-                <WalletMultiButton />
-              ) : (
-                <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => stake(Number(ethAmount))}>
-                  Proceed
-                </button>
-              )}
+              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => stakeTransaction(Number(ethAmount))}>
+                {isLoading ? <ClipLoader color="#FFFFFF" /> : "Proceed"}
+              </button>
             </div>
 
             {/* APR Section */}

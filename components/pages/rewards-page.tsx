@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react"
 import { Info } from "lucide-react"
 import { getUserHistory, getUserStats } from "@/lib/db"
+import {
+  useWallet,
+  ConsumeTransaction,
+  WalletNotConnectedError,
+  MidenWalletAdapter,
+  SendTransaction,
+} from "@demox-labs/miden-wallet-adapter";
 
 interface RewardsPageProps {
   isConnected: boolean
@@ -10,17 +17,17 @@ interface RewardsPageProps {
 }
 
 export default function RewardsPage({ isConnected, onConnect }: RewardsPageProps) {
+  const { accountId} = useWallet();
   const [address, setAddress] = useState("")
   useEffect(() => {
     fetchData(address)
   })
   async function fetchData(address: string) {
     
-    const wallet_address = "0xa014b8e02a130e1032b4e6b0824617"; // Replace with a default address or handle empty state
-    const userHistory = await getUserHistory(wallet_address);
+    const userHistory = await getUserHistory(accountId ?? "");
     console.log(userHistory);
 
-    const userStats = await getUserStats(wallet_address);
+    const userStats = await getUserStats(accountId ?? "");
     console.log(userStats);
 
   }

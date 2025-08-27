@@ -1,35 +1,17 @@
-export async function mint(): Promise<void> {
-  const amount: number = 10;
+export async function mint(USER_ID: string, amount = 10): Promise<any> {
+  console.log(USER_ID, "USER_IDPRESENT")
   // Ensure this runs only in a browser context
   if (typeof window === "undefined") return console.warn("Run in browser");
 
   const {
     WebClient,
-    AccountStorageMode,
     AccountId,
     NoteType,
     TransactionProver,
-    NoteInputs,
-    Note,
-    NoteAssets,
-    NoteRecipient,
-    Word,
-    OutputNotesArray,
-    NoteExecutionHint,
-    NoteTag,
-    NoteExecutionMode,
-    NoteMetadata,
-    FeltArray,
-    Felt,
-    FungibleAsset,
-    NoteAndArgsArray,
-    NoteAndArgs,
-    TransactionRequestBuilder,
-    OutputNote,
+    AccountStorageMode
   } = await import("@demox-labs/miden-sdk");
 
-  const USER_ID = process.env.PUBLIC_NEXT_USER_ID || "0xa014b8e02a130e1032b4e6b0824617";
-  const FAUCET_ID = process.env.PUBLIC_NEXT_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
+  const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
 
   const client = await WebClient.createClient(
     "https://rpc.testnet.miden.io:443"
@@ -38,31 +20,20 @@ export async function mint(): Promise<void> {
     "https://tx-prover.testnet.miden.io"
   );
 
-  console.log("Latest block:", (await client.syncState()).blockNum());
-
-
-  // const alice = await client.newWallet(AccountStorageMode.public(), true);
-  // console.log("Alice ID:", alice.id().toString());
-
-
-  //   const bob = await client.newWallet(AccountStorageMode.public(), true);
-  // console.log("bob ID:", bob.id().toString());
-
-
+  
   // const faucet1 = await client.newFaucet(
   //   AccountStorageMode.public(),
   //   false,
-  //   "ATI",
+  //   "MID",
   //   8,
   //   BigInt(1_000_000_000),
   // );
   // console.log("Faucet ID:", faucet1.id().toString());
 
-
   // const faucet2 = await client.newFaucet(
   //   AccountStorageMode.public(),
   //   false,
-  //   "USDC",
+  //   "ABC",
   //   8,
   //   BigInt(1_000_000_000),
   // );
@@ -72,19 +43,7 @@ export async function mint(): Promise<void> {
 
 
 
-
-
-  // ── Creating new account ──────────────────────────────────────────────────────
-
-  const userId = AccountId.fromHex(USER_ID);
-  const user = await client.getAccount(userId);
-  if (!user) {
-    console.error(
-      "Failed to fetch User's account. Please check the account ID."
-    );
-    return;
-  }
-  console.log("User1 accout ID:", user.id().toString());
+  console.log("Latest block:", (await client.syncState()).blockNum());
 
   const faucetId = AccountId.fromHex(FAUCET_ID);
   const faucet = await client.getAccount(faucetId);
@@ -96,36 +55,21 @@ export async function mint(): Promise<void> {
   }
   console.log("Faucet ID:", faucet.id().toString());
 
-  await client.submitTransaction(
-    await client.newTransaction(
-      faucet.id(),
-      client.newMintTransactionRequest(
-        user.id(),
-        faucet.id(),
-        NoteType.Public,
-        BigInt(amount)
-      )
-    ),
-    prover
+  let mintTxRequest = client.newMintTransactionRequest(
+    AccountId.fromBech32(USER_ID),
+    faucet.id(),
+    NoteType.Public,
+    BigInt(amount),
   );
+  
+  let txResult = await client.newTransaction(faucet.id(), mintTxRequest);
+  
+  await client.submitTransaction(txResult);
 
-  console.log("Waiting for settlement");
-  await new Promise((r) => setTimeout(r, 7_000));
+  console.log("Waiting 10 seconds for transaction confirmation...");
+  await new Promise((resolve) => setTimeout(resolve, 10000));
   await client.syncState();
 
-  //   ── Consume the freshly minted note ──────────────────────────────────────────────
-  const noteIds = (await client.getConsumableNotes(user.id())).map((rec) =>
-    rec.inputNoteRecord().id().toString()
-  );
+  console.log("Transaction confirmed. Asset transfer chain completed ✅");
 
-  await client.submitTransaction(
-    await client.newTransaction(
-      user.id(),
-      client.newConsumeTransactionRequest(noteIds)
-    ),
-    prover
-  );
-  await client.syncState();
-
-  console.log("Minted and consumed 10 tokens successfully");
 }

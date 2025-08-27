@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NEXT_DISABLE_TURBOPACK=1 next dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@demox-labs/miden-sdk": "^0.10.1",
+    "@demox-labs/miden-wallet-adapter": "^0.3.3",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -19,15 +20,13 @@
     "pg": "^8.16.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-spinners": "^0.17.0",
+    "react-toastify": "^11.0.5",
     "reflect-metadata": "^0.2.2",
     "tailwind-merge": "^3.3.1",
     "typeorm": "^0.3.25"
   },
   "devDependencies": {
-    "@demox-labs/miden-wallet-adapter": "^0.1.1",
-    "@demox-labs/miden-wallet-adapter-miden": "^0.1.1",
-    "@demox-labs/miden-wallet-adapter-react": "^0.1.2",
-    "@demox-labs/miden-wallet-adapter-reactui": "^0.1.6",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

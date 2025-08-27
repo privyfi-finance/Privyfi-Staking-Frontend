@@ -1,27 +1,144 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import StatisticsSection from "../statistics-section"
-import FAQSection from "../faq-section"
-import { mint } from "@/lib/mint"
-import { borrow } from "@/lib/borrow"
-import { lend } from "@/lib/lend"
-import { return_borrow } from "@/lib/return_borrowed"
-import { withdraw_lend } from "@/lib/withdraw_lend"
+import { useState } from "react";
+import StatisticsSection from "../statistics-section";
+import FAQSection from "../faq-section";
+import { mint } from "@/lib/mint";
+import { borrow } from "@/lib/borrow";
+import { lend } from "@/lib/lend";
+import { return_borrow } from "@/lib/return_borrowed";
+import { withdraw_lend } from "@/lib/withdraw_lend";
+import {
+  useWallet,
+  ConsumeTransaction,
+  MidenWalletAdapter,
+  SendTransaction,
+} from "@demox-labs/miden-wallet-adapter";
+import { canBurrow, canWithdrawlend, checkReturnableBorrows, lendTokens } from "@/lib/db";
 
 interface WrapPageProps {
-  isConnected: boolean
-  onConnect: () => void
+  isConnected: boolean;
+  onConnect: () => void;
 }
 
 export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
-  const [stethAmount, setStethAmount] = useState("")
-  const [wrapTab, setWrapTab] = useState("wrap")
-
+  const [stethAmount, setStethAmount] = useState("");
+  const [wrapTab, setWrapTab] = useState("wrap");
+  const { accountId, wallet } = useWallet();
+  const [faucetPublicKey, setFaucetPublicKey] = useState(
+    process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY
+  );
+  const [adminPublicKey, setAdminPublicKey] = useState(
+    process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY
+  );
+  const [faucetPublicKey2, setFaucetPublicKey2] = useState(
+    process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY2
+  );
   const handleMaxClick = () => {
-    setStethAmount("32.0")
-  }
+    setStethAmount("32.0");
+  };
 
+  const handleMint = async () => {
+    console.log("Minting", "stETH for user:", accountId);
+    await mint(accountId?.toString() || "");
+
+    console.log("Mint transaction sent");
+  };
+
+  const handleBorrow = async (amount: number) => {
+    const data = await canBurrow(accountId?.toString() || "");
+    if (!data.canBurrow) {
+      console.error(
+        "You have unreturned borrow(s). Please return them before borrowing again."
+      );
+      return;
+    }
+    const midenTransaction = new SendTransaction(
+      accountId ?? "",
+      adminPublicKey ?? "",
+      faucetPublicKey2 ?? "",
+      "public",
+      amount
+    );
+
+    const txId =
+      (await (wallet?.adapter as MidenWalletAdapter).requestSend(
+        midenTransaction
+      )) || "";
+
+    await new Promise((r) => setTimeout(r, 10_000));
+    console.log("Transfer transaction sent with ID:", txId);
+
+    borrow(accountId?.toString() || "", Number(stethAmount));
+    console.log("Borrow transaction sent");
+  };
+
+  const handleReturnBorrow = async (amount: number) => {
+    const data = await checkReturnableBorrows(accountId?.toString() || "");
+    if (!data.canReturn) {
+      console.error(
+        "You have unreturned borrow(s). Please return them before borrowing again."
+      );
+      return;
+    }
+    amount = Math.min(amount, data.totalReturnable);
+    console.log("Returning", amount, "stETH for user:", accountId);
+
+    const midenTransaction = new SendTransaction(
+      accountId ?? "",
+      adminPublicKey ?? "",
+      faucetPublicKey ?? "",
+      "public",
+      amount
+    );
+
+    const txId =
+      (await (wallet?.adapter as MidenWalletAdapter).requestSend(
+        midenTransaction
+      )) || "";
+
+    await new Promise((r) => setTimeout(r, 10_000));
+    console.log("Transfer transaction sent with ID:", txId);
+
+    await return_borrow(accountId?.toString() || "", amount);
+    console.log("Borrow transaction sent");
+  };
+
+  const handleLend = async (amount: number) => {
+    console.log("Lending", amount, "stETH for user:", accountId);
+    const midenTransaction = new SendTransaction(
+      accountId ?? "",
+      adminPublicKey ?? "",
+      faucetPublicKey ?? "",
+      "public",
+      amount
+    );
+
+    const txId =
+      (await (wallet?.adapter as MidenWalletAdapter).requestSend(
+        midenTransaction
+      )) || "";
+
+    await new Promise((r) => setTimeout(r, 10_000));
+    console.log("Transfer transaction sent with ID:", txId);
+
+    await lendTokens(accountId?.toString() || "", amount);
+
+    console.log("User's lending amount updated in the database.");
+  };
+
+  const handleWithdrawLend = async (amount: number) => {
+    const data = await canWithdrawlend(accountId?.toString() || "", amount);
+      if (!data.canWithdraw) {
+        console.error(
+          "You don't have any lended amount."
+        );
+        return;
+      }
+      const temp = await withdraw_lend(accountId?.toString() || "", amount);
+      console.log(temp,"temppppppppppp");
+      console.log("Lending amount withdrawn for user:", accountId);
+    }
   return (
     <div className="max-w-2xl mx-auto">
       {/* Wrap Section */}
@@ -35,7 +152,9 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
         <button
           onClick={() => setWrapTab("wrap")}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            wrapTab === "wrap" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
+            wrapTab === "wrap"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
           }`}
         >
           Wrap
@@ -43,7 +162,9 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
         <button
           onClick={() => setWrapTab("unwrap")}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            wrapTab === "unwrap" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
+            wrapTab === "unwrap"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
           }`}
         >
           Unwrap
@@ -62,7 +183,9 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
                   </div>
                   <input
                     type="number"
-                    placeholder={wrapTab === "wrap" ? "stETH amount" : "wstETH amount"}
+                    placeholder={
+                      wrapTab === "wrap" ? "stETH amount" : "wstETH amount"
+                    }
                     value={stethAmount}
                     onChange={(e) => setStethAmount(e.target.value)}
                     className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"
@@ -77,35 +200,35 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
               </div>
 
               <button
-                  onClick={() => mint()}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-                >
-                  Mint
-                </button>
-                <button
-                  onClick={() => borrow(Number(stethAmount))}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-                >
-                  Borrow
-                </button>
-                <button
-                  onClick={() => lend(Number(stethAmount))}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-                >
-                  Lend
-                </button>
-                <button
-                  onClick={() => return_borrow(Number(stethAmount))}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-                >
-                 Return Borrow
-                </button>
-                <button
-                  onClick={() => withdraw_lend(Number(stethAmount))}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-                >
-                 Withdraw Lend
-                </button>
+                onClick={() => handleMint()}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+              >
+                Mint
+              </button>
+              <button
+                onClick={() => handleBorrow(Number(stethAmount))}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+              >
+                Borrow
+              </button>
+              <button
+                onClick={() => handleLend(Number(stethAmount))}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+              >
+                Lend
+              </button>
+              <button
+                onClick={() => handleReturnBorrow(Number(stethAmount))}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+              >
+                Return Borrow
+              </button>
+              <button
+                onClick={() => handleWithdrawLend(Number(stethAmount))}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+              >
+                Withdraw Lend
+              </button>
               {!isConnected ? (
                 <button
                   onClick={onConnect}
@@ -136,7 +259,11 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>{wrapTab === "wrap" ? "1 stETH = 0.8262 wstETH" : "1 wstETH = 1.2103 stETH"}</span>
+                <span>
+                  {wrapTab === "wrap"
+                    ? "1 stETH = 0.8262 wstETH"
+                    : "1 wstETH = 1.2103 stETH"}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Allowance</span>
@@ -150,5 +277,5 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
       <StatisticsSection />
       <FAQSection />
     </div>
-  )
+  );
 }
