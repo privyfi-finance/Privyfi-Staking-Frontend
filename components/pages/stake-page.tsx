@@ -12,7 +12,7 @@ import {
   MidenWalletAdapter,
   SendTransaction,
 } from "@demox-labs/miden-wallet-adapter";
-
+import { stake } from "@/lib/stake";
 
 export default function StakePage() {
   const [ethAmount, setEthAmount] = useState("")
@@ -53,6 +53,9 @@ export default function StakePage() {
         )) || "";
 
       await new Promise((r) => setTimeout(r, 10_000));
+      
+      await stake(accountId ?? " ", Number(ethAmount))
+
       upsertUser(accountId || "", amount);
       console.log("Stake transaction sent with ID:", txId);
 
