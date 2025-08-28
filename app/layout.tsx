@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Privify",
   description: "Powered by Miden",
+  icons: {
+    icon: "/privyfi-logo.svg",
+  },
 };
 
 export default function RootLayout({

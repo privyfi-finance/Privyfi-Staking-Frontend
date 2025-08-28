@@ -12,11 +12,9 @@ export async function withdraw_in_contract(publicKey: string, amount: number): P
   const {
     AccountId,
     AssemblerUtils,
-    StorageSlot,
     TransactionKernel,
     TransactionRequestBuilder,
     TransactionScript,
-    TransactionScriptInputPairArray,
     WebClient,
   } = await import("@demox-labs/miden-sdk");
 
@@ -69,7 +67,7 @@ end
     `;
 
   // Building the counter contract
-  let assembler = TransactionKernel.assembler();
+  const assembler = TransactionKernel.assembler();
 
   // Counter contract account id on testnet
   const counterContractId = AccountId.fromBech32(
@@ -100,7 +98,7 @@ end
   console.log("Account ID:", account_id, "Updated Amount:", updated_amount, "for public key:", publicKey);
   
   // Building the transaction script which will call the counter contract
-  let txScriptCode = `
+  const txScriptCode = `
    use.miden_by_example::mapping_example_contract
 use.std::sys
 use.miden::account
@@ -142,25 +140,25 @@ end
   `;
 
   // Creating the library to call the counter contract
-  let stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
+  const stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
     assembler, // assembler
     "miden_by_example::mapping_example_contract", // library path to call the contract
     counterContractCode // account code of the contract
   );
 
   // Creating the transaction script
-  let txScript = TransactionScript.compile(
+  const txScript = TransactionScript.compile(
     txScriptCode,
     assembler.withLibrary(stakeComponentLib)
   );
 
   // Creating a transaction request with the transaction script
-  let txRequest = new TransactionRequestBuilder()
+  const txRequest = new TransactionRequestBuilder()
     .withCustomScript(txScript)
     .build();
 
   // Executing the transaction script against the counter contract
-  let txResult = await client.newTransaction(
+  const txResult = await client.newTransaction(
     stakeContractAccount.id(),
     txRequest
   );
@@ -172,11 +170,11 @@ end
   await client.syncState();
 
   // Logging the count of counter contract
-  let counter = await client.getAccount(stakeContractAccount.id());
+  const counter = await client.getAccount(stakeContractAccount.id());
 
   // Here we get the first Word from storage of the counter contract
   // A word is comprised of 4 Felts, 2**64 - 2**32 + 1
-  let count = counter?.storage().getItem(1);
+  const count = counter?.storage().getItem(1);
 
   // Converting the Word represented as a hex to a single integer value
   const value = Number(
