@@ -1,5 +1,6 @@
 import { getUserStake, withdrawStake } from "./db";
 import { mint } from "./mint";
+import { withdraw_in_contract } from "./withdraw_contract";
 
 
 export async function withdraw(USER_ID: string, amount: number): Promise<boolean> {
@@ -20,6 +21,8 @@ export async function withdraw(USER_ID: string, amount: number): Promise<boolean
 
   console.log("Asset transfer chain completed ✅");
 
+  await withdraw_in_contract(USER_ID, amount);
+  
   await withdrawStake(USER_ID, amount);
 
   console.log("User's staking amount updated in the database.");

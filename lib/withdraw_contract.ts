@@ -1,7 +1,7 @@
 import { getUserDetails } from "./db";
 
-export async function stake(publicKey: string, amount: number): Promise<void> {
-  console.log("staking for user...", publicKey);
+export async function withdraw_in_contract(publicKey: string, amount: number): Promise<void> {
+  console.log("withdrawing for user...", publicKey);
 
   if (typeof window === "undefined") {
     console.warn("webClient() can only run in the browser");
@@ -96,7 +96,7 @@ end
   console.log(data.amount_staked);
   
   const account_id = data ? data.id : 0;
-  const updated_amount = data ? Number(data.amount_staked) + amount : amount;
+  const updated_amount = data ? Number(data.amount_staked) - amount : amount;
   console.log("Account ID:", account_id, "Updated Amount:", updated_amount, "for public key:", publicKey);
   
   // Building the transaction script which will call the counter contract

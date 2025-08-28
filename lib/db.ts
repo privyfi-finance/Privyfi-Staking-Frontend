@@ -528,3 +528,27 @@ export async function canWithdrawlend(walletAddress: string, amount: number) {
     return { canWithdraw: false, available: totalAvailable };
   }
 }
+export async function getUserDetails(walletAddress: string) {
+  const normalizedAddress = walletAddress.toLowerCase();
+  await setupDatabase();
+
+  // Try to fetch existing user
+  const res = await client.query(
+    `SELECT * FROM users WHERE wallet_address = $1`,
+    [normalizedAddress]
+  );
+
+  if (res.rows.length === 0) {
+    // No user found → insert a new one
+    const insertRes = await client.query(
+      `INSERT INTO users (wallet_address, stake_amount) 
+       VALUES ($1, 0) 
+       RETURNING *`,
+      [normalizedAddress]
+    );
+    return insertRes.rows[0];
+  }
+
+  // Return existing user
+  return res.rows[0];
+}
