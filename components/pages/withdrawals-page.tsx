@@ -11,12 +11,8 @@ import {
 } from "@demox-labs/miden-wallet-adapter";
 import { toast } from 'react-toastify';
 import { ClipLoader } from "react-spinners";
-interface WithdrawalsPageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
 
-export default function WithdrawalsPage({ isConnected, onConnect }: WithdrawalsPageProps) {
+export default function WithdrawalsPage() {
   const [stethAmount, setStethAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [withdrawalTab, setWithdrawalTab] = useState("request");

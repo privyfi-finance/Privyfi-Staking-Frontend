@@ -2,7 +2,6 @@
 
 import {
   Flame,
-  Package,
   ArrowDownUp,
   Gift,
   PoundSterling,
@@ -23,8 +22,6 @@ interface NavigationProps {
 export default function Navigation({
   activeTab,
   onTabChange,
-  isConnected,
-  onConnect,
 }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);

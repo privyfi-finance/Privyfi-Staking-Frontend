@@ -12,78 +12,71 @@ import {
 import { checkReturnableBorrows } from "@/lib/db";
 import { return_borrow } from "@/lib/return_borrowed";
 
-interface StakePageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
 
-export default function ReturnBorrowPage({ isConnected, onConnect }: StakePageProps) {
+export default function ReturnBorrowPage() {
   const [ethAmount, setEthAmount] = useState("")
   const { wallet, accountId } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
-  const [faucetPublicKey, setFaucetPublicKey] = useState(
-    process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY
-  );
-  const [adminPublicKey, setAdminPublicKey] = useState(
-    process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY
-  );
+  const faucetPublicKey = process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY;
+  const adminPublicKey = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
+
 
   const handleMaxClick = () => {
     setEthAmount("32.0")
   }
 
-const handleReturnBorrow = async (amount: number) => {
-  if (!accountId) {
-    toast.error("User account not found.");
-    return;
-  }
-
-  if (!wallet) {
-    toast.error("Please connect the wallet first.");
-    return;
-  }
-
-  if (!amount || amount <= 0) {
-    toast.error("Amount must be greater than 0.");
-    return;
-  }
-
-  try {
-    setIsLoading(true);
-
-    const data = await checkReturnableBorrows(accountId.toString());
-    if (!data.canReturn || data.totalReturnable <= 0) {
-      toast.error("You have no returnable borrow amount.");
+  const handleReturnBorrow = async (amount: number) => {
+    if (!accountId) {
+      toast.error("User account not found.");
       return;
     }
 
-    const adjustedAmount = Math.min(amount, data.totalReturnable);
-    console.log("Returning", adjustedAmount, "stETH for user:", accountId);
+    if (!wallet) {
+      toast.error("Please connect the wallet first.");
+      return;
+    }
 
-    const midenTransaction = new SendTransaction(
-      accountId,
-      adminPublicKey ?? "",
-      faucetPublicKey ?? "",
-      "public",
-      adjustedAmount
-    );
+    if (!amount || amount <= 0) {
+      toast.error("Amount must be greater than 0.");
+      return;
+    }
 
-    const txId =
-      (await (wallet?.adapter as MidenWalletAdapter).requestSend(midenTransaction)) || "";
+    try {
+      setIsLoading(true);
 
-    await new Promise((r) => setTimeout(r, 10_000));
-    console.log("Transfer transaction sent with ID:", txId);
+      const data = await checkReturnableBorrows(accountId.toString());
+      if (!data.canReturn || data.totalReturnable <= 0) {
+        toast.error("You have no returnable borrow amount.");
+        return;
+      }
 
-    await return_borrow(accountId, adjustedAmount);
-    toast.success("Borrow successfully returned!");
-    console.log("Borrow transaction sent");
-  } catch (error) {
-    console.error("Return borrow failed:", error);
-    toast.error("Return failed. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      const adjustedAmount = Math.min(amount, data.totalReturnable);
+      console.log("Returning", adjustedAmount, "stETH for user:", accountId);
+
+      const midenTransaction = new SendTransaction(
+        accountId,
+        adminPublicKey ?? "",
+        faucetPublicKey ?? "",
+        "public",
+        adjustedAmount
+      );
+
+      const txId =
+        (await (wallet?.adapter as MidenWalletAdapter).requestSend(midenTransaction)) || "";
+
+      await new Promise((r) => setTimeout(r, 10_000));
+      console.log("Transfer transaction sent with ID:", txId);
+
+      await return_borrow(accountId, adjustedAmount);
+      toast.success("Borrow successfully returned!");
+      console.log("Borrow transaction sent");
+    } catch (error) {
+      console.error("Return borrow failed:", error);
+      toast.error("Return failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   return (

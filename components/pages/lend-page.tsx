@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { Info } from "lucide-react"
-import { upsertUser } from "@/lib/db"
 import { toast } from 'react-toastify';
 import { ClipLoader } from "react-spinners";
 import {
@@ -12,22 +11,15 @@ import {
 } from "@demox-labs/miden-wallet-adapter";
 import { lendTokens } from "@/lib/db";
 
-
-interface StakePageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
-
-export default function LendPage({ isConnected, onConnect }: StakePageProps) {
+export default function LendPage() {
   const [ethAmount, setEthAmount] = useState("")
   const { wallet, accountId } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
-  const [faucetPublicKey, setFaucetPublicKey] = useState(
+  const faucetPublicKey =
     process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY
-  );
-  const [adminPublicKey, setAdminPublicKey] = useState(
+
+  const adminPublicKey =
     process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY
-  );
 
   const handleMaxClick = () => {
     setEthAmount("32.0")

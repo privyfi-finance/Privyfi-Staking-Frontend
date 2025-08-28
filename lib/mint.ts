@@ -7,8 +7,8 @@ export async function mint(USER_ID: string, amount = 10): Promise<any> {
     WebClient,
     AccountId,
     NoteType,
-    TransactionProver,
-    AccountStorageMode
+    // TransactionProver,
+    // AccountStorageMode
   } = await import("@demox-labs/miden-sdk");
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
@@ -16,9 +16,9 @@ export async function mint(USER_ID: string, amount = 10): Promise<any> {
   const client = await WebClient.createClient(
     "https://rpc.testnet.miden.io:443"
   );
-  const prover = TransactionProver.newRemoteProver(
-    "https://tx-prover.testnet.miden.io"
-  );
+  // const prover = TransactionProver.newRemoteProver(
+  //   "https://tx-prover.testnet.miden.io"
+  // );
 
   
   // const faucet1 = await client.newFaucet(
@@ -55,14 +55,14 @@ export async function mint(USER_ID: string, amount = 10): Promise<any> {
   }
   console.log("Faucet ID:", faucet.id().toString());
 
-  let mintTxRequest = client.newMintTransactionRequest(
+  const mintTxRequest = client.newMintTransactionRequest(
     AccountId.fromBech32(USER_ID),
     faucet.id(),
     NoteType.Public,
     BigInt(amount),
   );
   
-  let txResult = await client.newTransaction(faucet.id(), mintTxRequest);
+  const txResult = await client.newTransaction(faucet.id(), mintTxRequest);
   
   await client.submitTransaction(txResult);
 

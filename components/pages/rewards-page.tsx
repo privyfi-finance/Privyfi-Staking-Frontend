@@ -8,12 +8,8 @@ import {
 } from "@demox-labs/miden-wallet-adapter";
 import dayjs from "dayjs"; 
 
-interface RewardsPageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
 
-export default function RewardsPage({ isConnected, onConnect }: RewardsPageProps) {
+export default function RewardsPage() {
   const { accountId, wallet } = useWallet();
   const [history, setHistory] = useState<any[]>([]);
 

@@ -10,22 +10,12 @@ import {
 import { canWithdrawlend } from "@/lib/db";
 import { withdraw_lend } from "@/lib/withdraw_lend";
 
-interface StakePageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
 
-export default function WithdawLendPage({ isConnected, onConnect }: StakePageProps) {
+export default function WithdawLendPage() {
   const [ethAmount, setEthAmount] = useState("")
   const { wallet, accountId } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
-  const [faucetPublicKey, setFaucetPublicKey] = useState(
-    process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY
-  );
-  const [adminPublicKey, setAdminPublicKey] = useState(
-    process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY
-  );
-
+ 
   const handleMaxClick = () => {
     setEthAmount("32.0")
   }

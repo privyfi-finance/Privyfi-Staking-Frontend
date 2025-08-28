@@ -26,9 +26,9 @@ export default function StakingApp() {
       case "faucet":
         return <FaucetPage />
       case "stake":
-        return <StakePage isConnected={isConnected} onConnect={handleConnect} />
+        return <StakePage />
       case "withdrawals":
-        return <WithdrawalsPage isConnected={isConnected} onConnect={handleConnect} />
+        return <WithdrawalsPage />
       case "wrap":
         return <WrapPage />
       case "lend":
@@ -42,7 +42,7 @@ export default function StakingApp() {
       case "rewards":
         return <RewardsPage />
       default:
-        return <FaucetPage isConnected={isConnected} onConnect={handleConnect} />
+        return <FaucetPage />
     }
   }
 

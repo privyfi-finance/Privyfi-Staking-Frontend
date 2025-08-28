@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { Info } from "lucide-react"
-import { upsertUser } from "@/lib/db"
 import { toast } from 'react-toastify';
 import { ClipLoader } from "react-spinners";
 import {
@@ -13,21 +12,16 @@ import {
 import { canBurrow } from "@/lib/db";
 import { borrow } from "@/lib/borrow";
 
-interface StakePageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
-
-export default function BorrowPage({ isConnected, onConnect }: StakePageProps) {
+export default function BorrowPage() {
   const [ethAmount, setEthAmount] = useState("")
   const { wallet, accountId } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
-  const [adminPublicKey, setAdminPublicKey] = useState(
+  const adminPublicKey =
     process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY
-  );
-  const [faucetPublicKey2, setFaucetPublicKey2] = useState(
+
+  const faucetPublicKey2 =
     process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY2
-  );
+
 
   const handleMaxClick = () => {
     setEthAmount("32.0")

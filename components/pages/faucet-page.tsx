@@ -9,12 +9,8 @@ import {
   useWallet
 } from "@demox-labs/miden-wallet-adapter";
 
-interface StakePageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
 
-export default function FaucetPage({ isConnected, onConnect }: StakePageProps) {
+export default function FaucetPage() {
   const [ethAmount, setEthAmount] = useState("")
   const { accountId, wallet } = useWallet();
   const [isLoading, setIsLoading] = useState(false);

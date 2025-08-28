@@ -5,35 +5,29 @@ import StatisticsSection from "../statistics-section";
 import FAQSection from "../faq-section";
 import { mint } from "@/lib/mint";
 import { borrow } from "@/lib/borrow";
-import { lend } from "@/lib/lend";
 import { return_borrow } from "@/lib/return_borrowed";
 import { withdraw_lend } from "@/lib/withdraw_lend";
 import {
   useWallet,
-  ConsumeTransaction,
   MidenWalletAdapter,
   SendTransaction,
 } from "@demox-labs/miden-wallet-adapter";
 import { canBurrow, canWithdrawlend, checkReturnableBorrows, lendTokens } from "@/lib/db";
 
-interface WrapPageProps {
-  isConnected: boolean;
-  onConnect: () => void;
-}
 
-export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
+export default function WrapPage() {
   const [stethAmount, setStethAmount] = useState("");
   const [wrapTab, setWrapTab] = useState("wrap");
   const { accountId, wallet } = useWallet();
-  const [faucetPublicKey, setFaucetPublicKey] = useState(
+  const faucetPublicKey =
     process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY
-  );
-  const [adminPublicKey, setAdminPublicKey] = useState(
+
+  const adminPublicKey =
     process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY
-  );
-  const [faucetPublicKey2, setFaucetPublicKey2] = useState(
+
+  const faucetPublicKey2 =
     process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY2
-  );
+
   const handleMaxClick = () => {
     setStethAmount("32.0");
   };
@@ -129,16 +123,16 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
 
   const handleWithdrawLend = async (amount: number) => {
     const data = await canWithdrawlend(accountId?.toString() || "", amount);
-      if (!data.canWithdraw) {
-        console.error(
-          "You don't have any lended amount."
-        );
-        return;
-      }
-      const temp = await withdraw_lend(accountId?.toString() || "", amount);
-      console.log(temp,"temppppppppppp");
-      console.log("Lending amount withdrawn for user:", accountId);
+    if (!data.canWithdraw) {
+      console.error(
+        "You don't have any lended amount."
+      );
+      return;
     }
+    const temp = await withdraw_lend(accountId?.toString() || "", amount);
+    console.log(temp, "temppppppppppp");
+    console.log("Lending amount withdrawn for user:", accountId);
+  }
   return (
     <div className="max-w-2xl mx-auto">
       {/* Wrap Section */}
@@ -151,21 +145,19 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
       <div className="flex bg-gray-100 rounded-lg p-1 mb-8 max-w-xs mx-auto">
         <button
           onClick={() => setWrapTab("wrap")}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            wrapTab === "wrap"
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${wrapTab === "wrap"
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
-          }`}
+            }`}
         >
           Wrap
         </button>
         <button
           onClick={() => setWrapTab("unwrap")}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            wrapTab === "unwrap"
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${wrapTab === "unwrap"
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
-          }`}
+            }`}
         >
           Unwrap
         </button>
@@ -229,18 +221,10 @@ export default function WrapPage({ isConnected, onConnect }: WrapPageProps) {
               >
                 Withdraw Lend
               </button>
-              {!isConnected ? (
-                <button
-                  onClick={onConnect}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-                >
-                  Connect wallet
-                </button>
-              ) : (
+             
                 <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium">
                   {wrapTab === "wrap" ? "Wrap" : "Unwrap"}
                 </button>
-              )}
             </div>
 
             {/* Transaction Details */}

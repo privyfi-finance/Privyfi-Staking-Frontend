@@ -9,23 +9,17 @@ import { toast } from 'react-toastify';
 import { ClipLoader } from "react-spinners";
 import {
   useWallet,
-  ConsumeTransaction,
-  WalletNotConnectedError,
   MidenWalletAdapter,
   SendTransaction,
 } from "@demox-labs/miden-wallet-adapter";
 
-interface StakePageProps {
-  isConnected: boolean
-  onConnect: () => void
-}
 
-export default function StakePage({ isConnected, onConnect }: StakePageProps) {
+export default function StakePage() {
   const [ethAmount, setEthAmount] = useState("")
   const { wallet, accountId } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
-  const [adminPublicKey, setAdminPublicKey] = useState(process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY);
-  const [faucetPublicKey, setFaucetPublicKey] = useState(process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY);
+  const faucetPublicKey = process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY;
+  const adminPublicKey = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
 
   const handleMaxClick = () => {
     setEthAmount("32.0")
