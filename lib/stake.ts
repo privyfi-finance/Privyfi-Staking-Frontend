@@ -154,7 +154,6 @@ export async function stake(amount: number): Promise<void> {
     OutputNotesArray,
     NoteExecutionHint,
     NoteTag,
-    NoteExecutionMode,
     NoteMetadata,
     FeltArray,
     Felt,
@@ -264,7 +263,7 @@ export async function stake(amount: number): Promise<void> {
     const metadata = new NoteMetadata(
       sender.id(),
       NoteType.Public,
-      NoteTag.fromAccountId(sender.id(), NoteExecutionMode.newLocal()),
+      NoteTag.fromAccountId(sender.id()),
       NoteExecutionHint.always(),
     );
 
