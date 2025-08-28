@@ -142,7 +142,7 @@ export async function stake(amount: number): Promise<void> {
 
   const {
     WebClient,
-    AccountStorageMode,
+    // AccountStorageMode,
     AccountId,
     NoteType,
     TransactionProver,
@@ -268,7 +268,7 @@ export async function stake(amount: number): Promise<void> {
       NoteExecutionHint.always(),
     );
 
-    let serialNumber = Word.newFromFelts([
+    const serialNumber = Word.newFromFelts([
       new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
       new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
       new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
@@ -280,16 +280,16 @@ export async function stake(amount: number): Promise<void> {
       new FeltArray([receiverAcct.suffix(), receiverAcct.prefix()]),
     );
 
-    let p2idNote = new Note(
+    const p2idNote = new Note(
       assets,
       metadata,
       new NoteRecipient(serialNumber, script, inputs),
     );
 
-    let outputP2ID = OutputNote.full(p2idNote);
+    const outputP2ID = OutputNote.full(p2idNote);
 
     console.log("Creating P2ID note...");
-    let transaction = await client.newTransaction(
+    const transaction = await client.newTransaction(
       sender.id(),
       new TransactionRequestBuilder()
         .withOwnOutputNotes(new OutputNotesArray([outputP2ID]))
@@ -299,13 +299,13 @@ export async function stake(amount: number): Promise<void> {
 
     console.log("Consuming P2ID note...");
 
-    let noteIdAndArgs = new NoteAndArgs(p2idNote, null);
+    const noteIdAndArgs = new NoteAndArgs(p2idNote, null);
 
-    let consumeRequest = new TransactionRequestBuilder()
+    const consumeRequest = new TransactionRequestBuilder()
       .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
       .build();
 
-    let txExecutionResult = await client.newTransaction(
+    const txExecutionResult = await client.newTransaction(
       receiver.id(),
       consumeRequest,
     );

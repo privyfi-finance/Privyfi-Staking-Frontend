@@ -1,4 +1,4 @@
-export async function mint(USER_ID: string, amount = 10): Promise<any> {
+export async function mint(USER_ID: string, amount = 10): Promise<void> {
   console.log(USER_ID, "USER_IDPRESENT")
   // Ensure this runs only in a browser context
   if (typeof window === "undefined") return console.warn("Run in browser");

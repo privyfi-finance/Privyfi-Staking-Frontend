@@ -8,10 +8,15 @@ import {
 } from "@demox-labs/miden-wallet-adapter";
 import dayjs from "dayjs"; 
 
+interface RewardHistoryItem {
+  action: string;
+  amount: number;
+  createdAt: string;
+}
 
 export default function RewardsPage() {
   const { accountId, wallet } = useWallet();
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<RewardHistoryItem[]>([]);
 
   useEffect(() => {
     if (accountId) fetchData(accountId);

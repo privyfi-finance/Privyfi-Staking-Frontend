@@ -1,4 +1,4 @@
-import { checkReturnableBorrows, returnBorrowed } from "./db";
+import { returnBorrowed } from "./db";
 
 const P2ID_NOTE_SCRIPT = `
 use.miden::account
@@ -63,8 +63,8 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
     WebClient,
     AccountId,
     NoteType,
-    TransactionProver,
-    AccountStorageMode
+    // TransactionProver,
+    // AccountStorageMode
   } = await import("@demox-labs/miden-sdk");
 
 
@@ -88,14 +88,14 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   const returnAmount = BigInt(amount * 2);
   console.log("Returning", returnAmount, "to user:", USER_ID);
   
-  let mintTxRequest = client.newMintTransactionRequest(
+  const mintTxRequest = client.newMintTransactionRequest(
     AccountId.fromBech32(USER_ID),
     faucet.id(),
     NoteType.Public,
     BigInt(returnAmount),
   );
   
-  let txResult = await client.newTransaction(faucet.id(), mintTxRequest);
+  const txResult = await client.newTransaction(faucet.id(), mintTxRequest);
   
   await client.submitTransaction(txResult);
 

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { WalletMultiButton } from "@demox-labs/miden-wallet-adapter";
 import { useState } from "react";
+import { LucideIcon } from "lucide-react";
 
 interface NavigationProps {
   activeTab: string;
@@ -19,6 +20,17 @@ interface NavigationProps {
   onConnect: () => void;
 }
 
+interface ChildTab {
+  id: string;
+  label: string;
+}
+
+interface TabItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  children?: ChildTab[];
+}
 export default function Navigation({
   activeTab,
   onTabChange,
@@ -56,7 +68,7 @@ export default function Navigation({
     { id: "rewards", label: "REWARDS", icon: Gift },
   ];
 
-  const renderTab = (tab: any) => {
+  const renderTab = (tab: TabItem) => {
     const Icon = tab.icon;
     const isActive = activeTab === tab.id;
 
@@ -74,7 +86,7 @@ export default function Navigation({
           </div>
           {openDropdown === tab.id && (
             <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md border border-gray-100 z-20">
-              {tab.children.map((child: any) => (
+              {tab.children.map((child: ChildTab) => (
                 <div
                   key={child.id}
                   onClick={() => {

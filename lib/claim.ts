@@ -1,4 +1,4 @@
-import { calculateClaimableReward, updateUserAfterClaim, withdrawStake } from "./db";
+import { calculateClaimableReward, updateUserAfterClaim } from "./db";
 import { mint } from "./mint";
 
 export async function claim(USER_ID: string): Promise<boolean> {
