@@ -85,7 +85,7 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   }
   console.log("Faucet ID:", faucet.id().toString());
 
-  const returnAmount = BigInt(amount * 2);
+  const returnAmount = BigInt(amount * 1000000*2);
   console.log("Returning", returnAmount, "to user:", USER_ID);
   
   const mintTxRequest = client.newMintTransactionRequest(

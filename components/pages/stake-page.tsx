@@ -35,16 +35,15 @@ export default function StakePage() {
       toast.error("Amount is required");
       return;
     }
-
     try {
       setIsLoading(true);
-      console.log("Staking", amount, "ETH for user:", adminPublicKey, faucetPublicKey);
+      console.log("Staking",  amount*1000000, "ETH for user:", accountId,"facuet public key", faucetPublicKey);
       const midenTransaction = new SendTransaction(
         accountId ?? "",
         adminPublicKey ?? "",
         faucetPublicKey ?? "",
         "public",
-        amount
+        amount*1000000
       );
       toast.success("Transaction Requested")
       const txId =
@@ -159,7 +158,8 @@ export default function StakePage() {
                 </div>
                 <span>10%</span>
               </div>
-            </div>
+            </div>  const data = await getUserDetails(publicKey);
+  console.log(data.amount_staked);
           </div>
         </div>
       </div>

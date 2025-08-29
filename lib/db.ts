@@ -541,7 +541,7 @@ export async function getUserDetails(walletAddress: string) {
   if (res.rows.length === 0) {
     // No user found → insert a new one
     const insertRes = await client.query(
-      `INSERT INTO users (wallet_address, stake_amount) 
+      `INSERT INTO users (wallet_address, amount_staked) 
        VALUES ($1, 0) 
        RETURNING *`,
       [normalizedAddress]

@@ -52,7 +52,7 @@ export default function BorrowPage() {
         adminPublicKey ?? "",
         faucetPublicKey2 ?? "",
         "public",
-        amount
+        amount*1000000
       );
       toast.info(`Borrow ${amount} token requested`);
       const txId =

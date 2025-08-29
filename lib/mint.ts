@@ -8,7 +8,7 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
     AccountId,
     NoteType,
     // TransactionProver,
-    // AccountStorageMode
+    AccountStorageMode
   } = await import("@demox-labs/miden-sdk");
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
@@ -59,7 +59,7 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
     AccountId.fromBech32(USER_ID),
     faucet.id(),
     NoteType.Public,
-    BigInt(amount),
+    BigInt(amount*1000000),
   );
   
   const txResult = await client.newTransaction(faucet.id(), mintTxRequest);

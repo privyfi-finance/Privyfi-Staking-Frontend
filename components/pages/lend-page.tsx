@@ -39,14 +39,14 @@ export default function LendPage() {
     try {
       setIsLoading(true);
 
-      console.log("Lending", amount, "stETH for user:", accountId);
+      console.log("Lending", amount*1000000, "stETH for user:", accountId);
 
       const midenTransaction = new SendTransaction(
         accountId ?? "",
         adminPublicKey ?? "",
         faucetPublicKey ?? "",
         "public",
-        amount
+        amount*1000000
       );
       toast.info(`Lending ${amount} token requested`);
       const txId =
