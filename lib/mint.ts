@@ -8,7 +8,7 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
     AccountId,
     NoteType,
     // TransactionProver,
-    AccountStorageMode
+    //AccountStorageMode
   } = await import("@demox-labs/miden-sdk");
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
