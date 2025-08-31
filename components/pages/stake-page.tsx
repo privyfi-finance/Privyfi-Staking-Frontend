@@ -76,7 +76,7 @@ export default function StakePage() {
       {/* Staking Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Stake Ether</h1>
-        <p className="text-gray-600">Stake ETH and receive stETH while staking</p>
+        <p className="text-gray-600">Stake PFY and receive stPFY while staking</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
@@ -123,7 +123,7 @@ export default function StakePage() {
                     <span className="text-orange-500">←</span>
                     <span className="text-orange-500">→</span>
                   </div>
-                  <span className="text-sm">stETH 0.04% SSV APR</span>
+                  <span className="text-sm">stPFY 0.04% SSV APR</span>
                   <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-bold">M</span>
                   </div>
@@ -141,11 +141,11 @@ export default function StakePage() {
             <div className="space-y-3 pt-4 border-t border-gray-200">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">You will receive</span>
-                <span>0.0 stETH</span>
+                <span>0.0 stPFY</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 ETH = 1 stETH</span>
+                <span>1 ETH = 1 stPFY</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max transaction cost</span>

@@ -17,7 +17,7 @@ export default function FAQSection() {
       id: "how-does-privyfi-work",
       question: "How does PrivyFi work?",
       answer:
-        "PrivyFi works by pooling ETH from multiple users and staking it on the Ethereum network through a decentralized network of validators.",
+        "PrivyFi works by pooling PFY from multiple users and staking it on the Ethereum network through a decentralized network of validators.",
     },
     {
       id: "is-it-safe",
@@ -26,28 +26,28 @@ export default function FAQSection() {
         "PrivyFi implements multiple security measures including smart contract audits and decentralized validation to ensure user funds are protected.",
     },
     {
-      id: "how-to-get-steth",
-      question: "How can I get stETH?",
+      id: "how-to-get-stPFY",
+      question: "How can I get stPFY?",
       answer:
-        "You can get stETH by staking your ETH through the PrivyFi platform. The stETH tokens represent your staked ETH plus accumulated rewards.",
+        "You can get stPFY by staking your ETH through the PrivyFi platform. The stPFY tokens represent your staked ETH plus accumulated rewards.",
     },
     {
-      id: "how-to-use-steth",
-      question: "How can I use stETH?",
+      id: "how-to-use-stPFY",
+      question: "How can I use stPFY?",
       answer:
-        "stETH can be used in various DeFi protocols, traded on exchanges, or held to accumulate staking rewards automatically.",
+        "stPFY can be used in various DeFi protocols, traded on exchanges, or held to accumulate staking rewards automatically.",
     },
     {
-      id: "where-to-cover-steth",
-      question: "Where can I cover my stETH?",
+      id: "where-to-cover-stPFY",
+      question: "Where can I cover my stPFY?",
       answer:
-        "You can use your stETH across various DeFi platforms that support liquid staking tokens for lending, borrowing, and yield farming.",
+        "You can use your stPFY across various DeFi platforms that support liquid staking tokens for lending, borrowing, and yield farming.",
     },
     {
       id: "how-to-unstake",
-      question: "How can I unstake stETH?",
+      question: "How can I unstake stPFY?",
       answer:
-        "You can unstake your stETH through the withdrawal process, which may involve a waiting period depending on network conditions.",
+        "You can unstake your stPFY through the withdrawal process, which may involve a waiting period depending on network conditions.",
     },
   ]
 

@@ -35,8 +35,8 @@ export default function FaucetPage() {
 
     try {
       setIsLoading(true);
-      console.log("Minting stETH for user:", accountId);
-      toast.info(`Minting stETH for user: ${accountId}`);
+      console.log("Minting stPFY for user:", accountId);
+      toast.info(`Minting stPFY for user: ${accountId}`);
       await mint(id.toString(), amount);
 
       toast.success("Mint transaction successful!");
@@ -102,7 +102,7 @@ export default function FaucetPage() {
                     <span className="text-orange-500">←</span>
                     <span className="text-orange-500">→</span>
                   </div>
-                  <span className="text-sm">stETH 0.04% SSV APR</span>
+                  <span className="text-sm">stPFY 0.04% SSV APR</span>
                   <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-bold">M</span>
                   </div>
@@ -120,11 +120,11 @@ export default function FaucetPage() {
             <div className="space-y-3 pt-4 border-t border-gray-200">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">You will receive</span>
-                <span>0.0 stETH</span>
+                <span>0.0 stPFY</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 ETH = 1 stETH</span>
+                <span>1 ETH = 1 stPFY</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max transaction cost</span>

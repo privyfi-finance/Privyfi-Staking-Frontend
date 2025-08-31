@@ -32,7 +32,7 @@ export default function StatisticsSection() {
               <span className="text-sm">551,861</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">stETH market cap</span>
+              <span className="text-sm text-gray-600">stPFY market cap</span>
               <span className="text-sm">$31,655,416,964</span>
             </div>
           </div>
