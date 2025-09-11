@@ -1,6 +1,19 @@
+import {
+  NoteType,
+} from "@demox-labs/miden-sdk";
 import { getUserDetails } from "./db";
 
-export async function stake(publicKey: string, amount: number): Promise<void> {
+export async function stake(publicKey: string, amount: number): Promise<any> {
+
+  (async () => {
+  const dbs = await indexedDB.databases();
+  for (const db of dbs) {
+    await indexedDB.deleteDatabase(db.name || "");
+    console.log(`Deleted database: ${db.name}`);
+  }
+  console.log("All databases deleted.");
+})();
+
   console.log("staking for user...", publicKey);
 
   if (typeof window === "undefined") {
@@ -10,68 +23,116 @@ export async function stake(publicKey: string, amount: number): Promise<void> {
 
   // dynamic import → only in the browser, so WASM is loaded client‑side
   const {
+    WebClient,
+    AccountStorageMode,
     AccountId,
+    // NoteType,
+    TransactionProver,
+    NoteInputs,
+    Note,
+    NoteAssets,
+    NoteRecipient,
+    Word,
+    OutputNotesArray,
+    NoteExecutionHint,
+    NoteTag,
+    NoteExecutionMode,
+    NoteMetadata,
+    FeltArray,
+    Felt,
+    FungibleAsset,
+    OutputNote,
     AssemblerUtils,
+    StorageSlot,
     TransactionKernel,
     TransactionRequestBuilder,
     TransactionScript,
-    WebClient,
+    TransactionScriptInputPairArray,
   } = await import("@demox-labs/miden-sdk");
 
   const nodeEndpoint = "https://rpc.testnet.miden.io:443";
   const client = await WebClient.createClient(nodeEndpoint);
+
+  await client.syncState();
   //   console.log("Current block number: ", (await client.syncState()).blockNum());
+  const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "";
+  console.log(FAUCET_ID , "FAUCET_ID");
+  
+  const faucetId = AccountId.fromHex(FAUCET_ID);
+
+
+  // const faucet = await client.importAccountById(faucetId);
+  // console.log("Faucet ID:", faucetId.isFaucet()); // check id for prefix
+
+  // if (!faucet) {
+  //   console.error(
+  //     "Failed to fetch Faucet's account. Please check the account ID."
+  //   );
+  //   return;
+  // }
+  // console.log("Faucet ID:", faucet.id().toString());
+
+  const prover = TransactionProver.newRemoteProver(
+    "https://tx-prover.testnet.miden.io"
+  );
 
   // Counter contract code in Miden Assembly
   const counterContractCode = `
-    use.miden::account
+use.miden::account
 use.std::sys
 
-# Inputs: [KEY, VALUE]
-# Outputs: []
-export.stake
-    # The storage map is in storage slot 1
-    push.1
-    # => [index, KEY, VALUE]
+const.STAKING_SLOT=0
 
-    # Setting the key value pair in the map
-    exec.account::set_map_item
-    # => [OLD_MAP_ROOT, OLD_MAP_VALUE]
+# Constructor: just stores 1 at slot 1 as a initial transaction to deploy
+# => []
+export.deploy
+    push.1 dup
+    # => [1, 1]
 
-    dropw dropw dropw dropw
+    exec.account::set_item
+    # => []
+
+    exec.sys::truncate_stack
     # => []
 end
 
-# Inputs: [KEY]
-# Outputs: [VALUE]
-export.get_stake_value
-    # The storage map is in storage slot 1
-    push.1
+
+# => []
+export.get_count
+    push.STAKING_SLOT
     # => [index]
 
-    exec.account::get_map_item
-    # => [VALUE]
-end
-
-# Inputs: []
-# Outputs: [CURRENT_ROOT]
-export.get_current_map_root
-    # Getting the current root from slot 1
-    push.1 exec.account::get_item
-    # => [CURRENT_ROOT]
+    exec.account::get_item
+    # => [count]
 
     exec.sys::truncate_stack
-    # => [CURRENT_ROOT]
+    # => []
 end
 
-    `;
+# => [sender_acct_id_pre, sender_acct_id_suf, ASSET]
+export.stake_info
+    # (0, 0, sender_acct_id_pre, sender_acct_id_suf) will be KEY
+    push.0.0
+    # => [0, 0, sender_acct_id_pre, sender_acct_id_suf, ASSET]
 
+    push.STAKING_SLOT
+    # => [index, KEY, ASSET]
+
+    debug.stack
+
+    exec.account::set_map_item dropw dropw
+    # => []
+
+    exec.sys::truncate_stack
+    # => []
+end
+`;
   // Building the counter contract
-  const assembler = TransactionKernel.assembler();
+  let assembler = TransactionKernel.assembler();
 
   // Counter contract account id on testnet
   const counterContractId = AccountId.fromBech32(
-    "mtst1qqsrz88as8u6sqzqe8g6eweh6v4a2790"
+    "mtst1qqugv0myjaprqsqcnlzpyz30pc7pwg8g"
   );
 
   // Reading the public state of the counter contract from testnet,
@@ -90,96 +151,98 @@ end
     stakeContractAccount.id().toString()
   );
 
-  const data = await getUserDetails(publicKey);
-  console.log(data.amount_staked);
-  
-  const account_id = data ? data.id : 0;
-  const updated_amount = data ? Number(data.amount_staked) + amount : amount;
-  console.log("Account ID:", account_id, "Updated Amount:", updated_amount, "for public key:", publicKey);
-  
+
   // Building the transaction script which will call the counter contract
-  const txScriptCode = `
-   use.miden_by_example::mapping_example_contract
-use.std::sys
-use.miden::account
-use.miden::account_id
+  let txScriptCode = `
+   use.external_contract::staking_contract
+use.miden::contracts::wallets::basic->wallet
 use.miden::note
-
-const.ERR_P2ID_WRONG_NUMBER_OF_INPUTS="P2ID note expects exactly 2 note inputs"
-
-const.ERR_P2ID_TARGET_ACCT_MISMATCH="P2ID's target account address and transaction address do not match"
+use.std::sys
 
 begin
-    push.0.0.0.${account_id}
-    push.0.0.0.${updated_amount}
-    # => [KEY, VALUE]
+    # Load the ASSET on to memory position 1 and ensure the note only has 1 ASSET
+    push.0
+    exec.note::get_assets
 
+    assert.err="Staking notes has more than one fungible asset. Only one fungible asset per note is allowed"
+    # => [1]
 
-    # account id (key ) => stake(value), rewards (account id = > calucate rewardsvalue)
+    padw mem_loadw.0
+    # => [ASSET]
 
-    call.mapping_example_contract::stake
+    exec.note::get_sender
+    # => [sender_id_prefix, sender_id_suffix, ASSET]
+
+    debug.stack
+
+    # Store info about Staker (KEY) and Asset (VALUE) in contract
+    call.staking_contract::stake_info
+
+    # Load ASSET from memory
+    padw mem_loadw.0
+    # => [ASSET]
+
+    # Call receive asset in wallet
+    call.wallet::receive_asset
     # => []
-
-    push.0.0.0.0
-    # => [KEY]
-
-    call.mapping_example_contract::get_stake_value
-    # => [VALUE]
-
-    dropw
-    # => []
-
-    call.mapping_example_contract::get_current_map_root
-    # => [CURRENT_ROOT]
 
     exec.sys::truncate_stack
-
-
+    # => []
 end
-
   `;
 
   // Creating the library to call the counter contract
-  const stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
+  let stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
     assembler, // assembler
-    "miden_by_example::mapping_example_contract", // library path to call the contract
+    "external_contract::staking_contract", // library path to call the contract
     counterContractCode // account code of the contract
   );
 
-  // Creating the transaction script
-  const txScript = TransactionScript.compile(
-    txScriptCode,
-    assembler.withLibrary(stakeComponentLib)
+  assembler = assembler.withLibrary(stakeComponentLib);
+  const script = assembler.compileNoteScript(txScriptCode);
+
+  const assets = new NoteAssets([new FungibleAsset(faucetId, BigInt(amount))]);
+  const metadata = new NoteMetadata(
+    AccountId.fromBech32(publicKey),
+    NoteType.Public,
+    NoteTag.fromAccountId(
+      AccountId.fromBech32(publicKey),
+      // NoteExecutionMode.newLocal()
+    ),
+    NoteExecutionHint.always()
+  );
+  let serialNumber = Word.newFromFelts([
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+  ]);
+  const inputs = new NoteInputs(
+    new FeltArray([
+      AccountId.fromBech32(publicKey).suffix(),
+      AccountId.fromBech32(publicKey).prefix(),
+    ])
   );
 
-  // Creating a transaction request with the transaction script
-  const txRequest = new TransactionRequestBuilder()
-    .withCustomScript(txScript)
+  let note = new Note(
+    assets,
+    metadata,
+    new NoteRecipient(serialNumber, script, inputs)
+  );
+
+  const p2idNotes = OutputNote.full(note);
+
+  let transaction = new TransactionRequestBuilder()
+    .withOwnOutputNotes(new OutputNotesArray([p2idNotes]))
     .build();
 
-  // Executing the transaction script against the counter contract
-  const txResult = await client.newTransaction(
-    stakeContractAccount.id(),
-    txRequest
-  );
+  console.log("Transaction created:", transaction);
 
-  // Submitting the transaction result to the node
-  await client.submitTransaction(txResult);
-
-  // Sync state
-  await client.syncState();
-
-  // Logging the count of counter contract
-  const counter = await client.getAccount(stakeContractAccount.id());
-
-  // Here we get the first Word from storage of the counter contract
-  // A word is comprised of 4 Felts, 2**64 - 2**32 + 1
-  const count = counter?.storage().getItem(1);
-
-  // Converting the Word represented as a hex to a single integer value
-  const value = Number(
-    BigInt("0x" + count!.toHex().slice(-16).match(/../g)!.reverse().join(""))
-  );
-
-  console.log("Count: ", value);
+  return transaction;
 }
+
+
+
+
+
+

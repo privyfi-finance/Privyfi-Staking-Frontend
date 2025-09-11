@@ -11,12 +11,15 @@ import {
   useWallet,
   MidenWalletAdapter,
   SendTransaction,
+  CustomTransaction,
+  TransactionType
+
 } from "@demox-labs/miden-wallet-adapter";
 import { stake } from "@/lib/stake";
 
 export default function StakePage() {
   const [ethAmount, setEthAmount] = useState("")
-  const { wallet, accountId } = useWallet();
+  const { wallet, accountId , requestTransaction } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
   const faucetPublicKey = process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY;
   const adminPublicKey = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
@@ -24,8 +27,7 @@ export default function StakePage() {
   const handleMaxClick = () => {
     setEthAmount("32.0")
   }
-
-  const stakeTransaction = async (amount: number) => {
+const stakeTransaction = async (amount: number) => {
     if (!wallet) {
       toast.error("Please connect the wallet first");
       return;
@@ -35,28 +37,48 @@ export default function StakePage() {
       toast.error("Amount is required");
       return;
     }
+
     try {
       setIsLoading(true);
-      console.log("Staking",  amount*1000000, "ETH for user:", accountId,"facuet public key", faucetPublicKey);
-      const midenTransaction = new SendTransaction(
-        accountId ?? "",
-        adminPublicKey ?? "",
-        faucetPublicKey ?? "",
-        "public",
-        amount*1000000
+      console.log(
+        "Staking",
+        amount,
+        "ETH for user:",
+        adminPublicKey,
+        faucetPublicKey
       );
-      toast.success("Transaction Requested")
-      const txId =
-        (await (wallet?.adapter as MidenWalletAdapter).requestSend(
-          midenTransaction
-        )) || "";
 
-      await new Promise((r) => setTimeout(r, 10_000));
-      
-      await stake(accountId ?? " ", Number(ethAmount))
+      // const midenTransaction = new SendTransaction(
+      //   accountId ?? "",
+      //   adminPublicKey ?? "",
+      //   faucetPublicKey ?? "",
+      //   "public",
+      //   amount
+      // );
+      // toast.success("Transaction Requested")
+      // const txId =
+      //   (await (wallet?.adapter as MidenWalletAdapter).requestSend(
+      //     midenTransaction
+      //   )) || "";
 
+      // await new Promise((r) => setTimeout(r, 10_000));
+
+      let transactionRequest = await stake(accountId ?? " ", Number(ethAmount));
+
+      const customTransaction = new CustomTransaction(
+        accountId ?? "", // AccountId the transaction request will be executed against
+        transactionRequest, // TransactionRequest object (will need to be generated using the Miden Web SDK)
+
+      );
+
+      if(customTransaction && requestTransaction) {
+       const txId = await requestTransaction({payload: customTransaction, type: TransactionType.Custom});
+       console.log("Stake transaction sent with ID:", txId);
+
+
+      }
       upsertUser(accountId || "", amount);
-      console.log("Stake transaction sent with ID:", txId);
+      // console.log("Stake transaction sent with ID:", txId);
 
       setTimeout(() => {
         setIsLoading(false);
@@ -76,7 +98,7 @@ export default function StakePage() {
       {/* Staking Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Stake Ether</h1>
-        <p className="text-gray-600">Stake PFY and receive stPFY while staking</p>
+        <p className="text-gray-600">Stake ETH and receive stETH while staking</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
@@ -123,7 +145,7 @@ export default function StakePage() {
                     <span className="text-orange-500">←</span>
                     <span className="text-orange-500">→</span>
                   </div>
-                  <span className="text-sm">stPFY 0.04% SSV APR</span>
+                  <span className="text-sm">stETH 0.04% SSV APR</span>
                   <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-bold">M</span>
                   </div>
@@ -141,11 +163,11 @@ export default function StakePage() {
             <div className="space-y-3 pt-4 border-t border-gray-200">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">You will receive</span>
-                <span>0.0 stPFY</span>
+                <span>0.0 stETH</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 ETH = 1 stPFY</span>
+                <span>1 ETH = 1 stETH</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max transaction cost</span>
@@ -158,8 +180,7 @@ export default function StakePage() {
                 </div>
                 <span>10%</span>
               </div>
-            </div>  const data = await getUserDetails(publicKey);
-  console.log(data.amount_staked);
+            </div>
           </div>
         </div>
       </div>
