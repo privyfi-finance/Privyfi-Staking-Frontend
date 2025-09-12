@@ -81,7 +81,7 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
     }
   } catch (e) {
     console.error("FAUCET2 check failed", {
-      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL,
+      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io:443",
       faucetId: FAUCET_ID,
       resolvedId: faucet.id().toString(),
       error: e,

@@ -85,7 +85,7 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
     await client.submitTransaction(txResult);
   } catch (err) {
     console.error("Minting failed:", err, {
-      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL,
+      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io:443",
       faucetId: FAUCET_ID,
       userId: USER_ID,
       amount,
