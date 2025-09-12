@@ -65,7 +65,7 @@ export default function Navigation({
         { id: "return_borrow", label: "RETURN BORROW" },
       ],
     },
-    { id: "rewards", label: "HISTORY", icon: Gift },
+    { id: "rewards", label: "REWARDS", icon: Gift },
   ];
 
   const renderTab = (tab: TabItem) => {

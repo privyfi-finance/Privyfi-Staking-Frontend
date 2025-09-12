@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: "export",
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
-
+  experimental: {
+    esmExternals: "loose",
+  },
   webpack: (config, { isServer }) => {
     // Handle WASM files
     config.experiments = {

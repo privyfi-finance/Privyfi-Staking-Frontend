@@ -8,28 +8,20 @@ export async function withdraw_in_contract(publicKey: string, amount: number): P
     return;
   }
 
-  if (!publicKey) {
-    console.error("withdraw_in_contract(): publicKey is required (wallet not connected)");
-    return;
-  }
-  if (!amount || amount <= 0) {
-    console.error("withdraw_in_contract(): amount must be > 0");
-    return;
-  }
-
   // dynamic import → only in the browser, so WASM is loaded client‑side
   const {
     AccountId,
     AssemblerUtils,
+    StorageSlot,
     TransactionKernel,
     TransactionRequestBuilder,
     TransactionScript,
+    TransactionScriptInputPairArray,
     WebClient,
   } = await import("@demox-labs/miden-sdk");
 
-  const rpcUrl = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
-  const client = await WebClient.createClient(rpcUrl);
-  await client.syncState();
+  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
+  const client = await WebClient.createClient(nodeEndpoint);
   //   console.log("Current block number: ", (await client.syncState()).blockNum());
 
   // Counter contract code in Miden Assembly
@@ -77,7 +69,7 @@ end
     `;
 
   // Building the counter contract
-  const assembler = TransactionKernel.assembler();
+  let assembler = TransactionKernel.assembler();
 
   // Counter contract account id on testnet
   const counterContractId = AccountId.fromBech32(
@@ -108,7 +100,7 @@ end
   console.log("Account ID:", account_id, "Updated Amount:", updated_amount, "for public key:", publicKey);
   
   // Building the transaction script which will call the counter contract
-  const txScriptCode = `
+  let txScriptCode = `
    use.miden_by_example::mapping_example_contract
 use.std::sys
 use.miden::account
@@ -150,25 +142,25 @@ end
   `;
 
   // Creating the library to call the counter contract
-  const stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
+  let stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
     assembler, // assembler
     "miden_by_example::mapping_example_contract", // library path to call the contract
     counterContractCode // account code of the contract
   );
 
   // Creating the transaction script
-  const txScript = TransactionScript.compile(
+  let txScript = TransactionScript.compile(
     txScriptCode,
     assembler.withLibrary(stakeComponentLib)
   );
 
   // Creating a transaction request with the transaction script
-  const txRequest = new TransactionRequestBuilder()
+  let txRequest = new TransactionRequestBuilder()
     .withCustomScript(txScript)
     .build();
 
   // Executing the transaction script against the counter contract
-  const txResult = await client.newTransaction(
+  let txResult = await client.newTransaction(
     stakeContractAccount.id(),
     txRequest
   );
@@ -180,11 +172,11 @@ end
   await client.syncState();
 
   // Logging the count of counter contract
-  const counter = await client.getAccount(stakeContractAccount.id());
+  let counter = await client.getAccount(stakeContractAccount.id());
 
   // Here we get the first Word from storage of the counter contract
   // A word is comprised of 4 Felts, 2**64 - 2**32 + 1
-  const count = counter?.storage().getItem(1);
+  let count = counter?.storage().getItem(1);
 
   // Converting the Word represented as a hex to a single integer value
   const value = Number(

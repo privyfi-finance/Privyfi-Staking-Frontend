@@ -541,7 +541,7 @@ export async function getUserDetails(walletAddress: string) {
   if (res.rows.length === 0) {
     // No user found → insert a new one
     const insertRes = await client.query(
-      `INSERT INTO users (wallet_address, amount_staked) 
+      `INSERT INTO users (wallet_address, stake_amount) 
        VALUES ($1, 0) 
        RETURNING *`,
       [normalizedAddress]
@@ -551,4 +551,29 @@ export async function getUserDetails(walletAddress: string) {
 
   // Return existing user
   return res.rows[0];
+  // return  {
+  //   id: 1,
+  //   wallet_address: "0xedfa5cd155bca31026a92acfa2d8bb",
+  //   amount_staked: 32,
+  //   last_staked_at: new Date(),
+  //   has_claimed: false,
+  // }
+}
+
+export async function getUserLendedAmount(walletAddress: string) {
+  const normalizedAddress = walletAddress.toLowerCase();
+  await setupDatabase();
+
+  const res = await client.query(
+    `SELECT SUM(amount) AS total_lended 
+     FROM lends 
+     WHERE wallet_address = $1 AND withdrawn = FALSE`,
+    [normalizedAddress]
+  );
+
+  const totalLended = res.rows[0]?.total_lended
+    ? Number(res.rows[0].total_lended)
+    : 0;
+
+  return totalLended;
 }

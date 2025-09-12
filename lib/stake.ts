@@ -1,21 +1,21 @@
-// Avoid importing runtime values from the SDK at module scope
-import type { TransactionRequest } from "@demox-labs/miden-sdk";
+import { NoteType } from "@demox-labs/miden-sdk";
+import { getUserDetails } from "./db";
 
-export async function stake(publicKey: string, amount: number): Promise<TransactionRequest> {
+export async function stake(publicKey: string, amount: number): Promise<any> {
   console.log("staking for user...", publicKey);
 
   if (typeof window === "undefined") {
-    throw new Error("webClient() can only run in the browser");
+    console.warn("webClient() can only run in the browser");
+    return;
   }
-  if (!publicKey) throw new Error("stake(): publicKey is required (wallet not connected)");
-  if (!amount || amount <= 0) throw new Error("stake(): amount must be > 0");
 
   // dynamic import → only in the browser, so WASM is loaded client‑side
   const {
     WebClient,
+    AccountStorageMode,
     AccountId,
     // NoteType,
-    NoteType,
+    TransactionProver,
     NoteInputs,
     Note,
     NoteAssets,
@@ -24,19 +24,22 @@ export async function stake(publicKey: string, amount: number): Promise<Transact
     OutputNotesArray,
     NoteExecutionHint,
     NoteTag,
+    NoteExecutionMode,
     NoteMetadata,
     FeltArray,
     Felt,
     FungibleAsset,
     OutputNote,
     AssemblerUtils,
+    StorageSlot,
     TransactionKernel,
     TransactionRequestBuilder,
+    TransactionScript,
+    TransactionScriptInputPairArray,
   } = await import("@demox-labs/miden-sdk");
 
-  const nodeEndpoint = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
+  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
   const client = await WebClient.createClient(nodeEndpoint);
-  await client.syncState();
   const FAUCET_ID =
     process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
 
@@ -46,7 +49,8 @@ export async function stake(publicKey: string, amount: number): Promise<Transact
     (await client.syncState()).blockNum()
   );
   const faucetId = AccountId.fromHex(FAUCET_ID);
-  console.log("Faucet ID parsed.");
+  console.log("Faucet ID:", faucetId.isFaucet());
+  console.log("Faucet Balance:");
 
   let faucet = await client.getAccount(faucetId);
   if (!faucet) {
@@ -138,7 +142,7 @@ end
   );
 
   // Building the transaction script which will call the counter contract
-  const txScriptCode = `
+  let txScriptCode = `
    use.external_contract::staking_contract
 use.miden::contracts::wallets::basic->wallet
 use.miden::note
@@ -147,7 +151,7 @@ use.std::sys
 begin
     # Load the ASSET on to memory position 1 and ensure the note only has 1 ASSET
     push.0
-    exec.note::get_assets
+    exec.note::get_assets 
 
     assert.err="Staking notes has more than one fungible asset. Only one fungible asset per note is allowed"
     # => [1]
@@ -177,7 +181,7 @@ end
   `;
 
   // Creating the library to call the counter contract
-  const stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
+  let stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
     assembler, // assembler
     "external_contract::staking_contract", // library path to call the contract
     counterContractCode // account code of the contract
@@ -198,7 +202,7 @@ end
     ),
     NoteExecutionHint.always()
   );
-  const serialNumber = Word.newFromFelts([
+  let serialNumber = Word.newFromFelts([
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
@@ -211,7 +215,7 @@ end
     ])
   );
 
-  const note = new Note(
+  let note = new Note(
     assets,
     metadata,
     new NoteRecipient(serialNumber, script, inputs)
@@ -219,7 +223,7 @@ end
 
   const p2idNotes = OutputNote.full(note);
 
-  const transaction = new TransactionRequestBuilder()
+  let transaction = new TransactionRequestBuilder()
     .withOwnOutputNotes(new OutputNotesArray([p2idNotes]))
     .build();
 

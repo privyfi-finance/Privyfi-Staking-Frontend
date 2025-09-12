@@ -60,12 +60,12 @@ export default function RewardsPage() {
           <div className="bg-white rounded-lg p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-sm text-gray-600 mb-2">stPFY balance</div>
+                <div className="text-sm text-gray-600 mb-2">stETH balance</div>
                 <div className="text-2xl font-bold text-gray-400">–</div>
                 <div className="text-sm text-gray-400">–</div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-600 mb-2">stPFY rewarded</div>
+                <div className="text-sm text-gray-600 mb-2">stETH rewarded</div>
                 <div className="text-2xl font-bold text-gray-400">–</div>
                 <div className="text-sm text-gray-400">–</div>
               </div>
@@ -78,7 +78,7 @@ export default function RewardsPage() {
                 <div className="text-sm text-gray-400">–</div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-600 mb-2">stPFY price</div>
+                <div className="text-sm text-gray-600 mb-2">stETH price</div>
                 <div className="text-2xl font-bold text-gray-400">–</div>
                 <div className="text-sm text-gray-400">–</div>
               </div>

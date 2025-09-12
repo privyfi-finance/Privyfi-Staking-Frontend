@@ -33,7 +33,7 @@ export default function WrapPage() {
   };
 
   const handleMint = async () => {
-    console.log("Minting", "stPFY for user:", accountId);
+    console.log("Minting", "stETH for user:", accountId);
     await mint(accountId?.toString() || "");
 
     console.log("Mint transaction sent");
@@ -76,7 +76,7 @@ export default function WrapPage() {
       return;
     }
     amount = Math.min(amount, data.totalReturnable);
-    console.log("Returning", amount, "stPFY for user:", accountId);
+    console.log("Returning", amount, "stETH for user:", accountId);
 
     const midenTransaction = new SendTransaction(
       accountId ?? "",
@@ -99,7 +99,7 @@ export default function WrapPage() {
   };
 
   const handleLend = async (amount: number) => {
-    console.log("Lending", amount, "stPFY for user:", accountId);
+    console.log("Lending", amount, "stETH for user:", accountId);
     const midenTransaction = new SendTransaction(
       accountId ?? "",
       adminPublicKey ?? "",
@@ -138,7 +138,7 @@ export default function WrapPage() {
       {/* Wrap Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Wrap & Unwrap</h1>
-        <p className="text-gray-600">Stable-balance stPFY wrapper for DeFi</p>
+        <p className="text-gray-600">Stable-balance stETH wrapper for DeFi</p>
       </div>
 
       {/* Wrap/Unwrap Tabs */}
@@ -176,7 +176,7 @@ export default function WrapPage() {
                   <input
                     type="number"
                     placeholder={
-                      wrapTab === "wrap" ? "stPFY amount" : "wstETH amount"
+                      wrapTab === "wrap" ? "stETH amount" : "wstETH amount"
                     }
                     value={stethAmount}
                     onChange={(e) => setStethAmount(e.target.value)}
@@ -231,7 +231,7 @@ export default function WrapPage() {
             <div className="space-y-3 pt-4 border-t border-gray-200">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">You will receive</span>
-                <span>{wrapTab === "wrap" ? "0.0 wstETH" : "0.0 stPFY"}</span>
+                <span>{wrapTab === "wrap" ? "0.0 wstETH" : "0.0 stETH"}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max unlock cost</span>
@@ -245,8 +245,8 @@ export default function WrapPage() {
                 <span className="text-gray-600">Exchange rate</span>
                 <span>
                   {wrapTab === "wrap"
-                    ? "1 stPFY = 0.8262 wstETH"
-                    : "1 wstETH = 1.2103 stPFY"}
+                    ? "1 stETH = 0.8262 wstETH"
+                    : "1 wstETH = 1.2103 stETH"}
                 </span>
               </div>
               <div className="flex justify-between text-sm">

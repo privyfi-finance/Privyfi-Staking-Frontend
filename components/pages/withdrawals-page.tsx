@@ -63,7 +63,7 @@ export default function WithdrawalsPage() {
       {/* Withdrawals Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Withdrawals</h1>
-        <p className="text-gray-600">Request stPFY withdrawal and claim Privyfi Token</p>
+        <p className="text-gray-600">Request stETH/wstETH withdrawal and claim ETH</p>
       </div>
 
       {/* Request/Claim Tabs */}
@@ -97,7 +97,7 @@ export default function WithdrawalsPage() {
                     </div>
                     <input
                       type="number"
-                      placeholder="stPFY amount"
+                      placeholder="stETH amount"
                       value={stethAmount}
                       onChange={(e) => setStethAmount(e.target.value)}
                       className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"
@@ -193,7 +193,7 @@ export default function WithdrawalsPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 stPFY = 1 ETH</span>
+                <span>1 stETH = 1 ETH</span>
               </div>
             </div>
           </div>

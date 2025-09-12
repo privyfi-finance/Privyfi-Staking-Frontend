@@ -1,31 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Info } from "lucide-react"
-import StatisticsSection from "../statistics-section"
-import FAQSection from "../faq-section"
-import { upsertUser } from "@/lib/db"
-import { toast } from 'react-toastify';
+import { useState } from "react";
+import { Info } from "lucide-react";
+import StatisticsSection from "../statistics-section";
+import FAQSection from "../faq-section";
+import { upsertUser } from "@/lib/db";
+import { toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
 import {
   useWallet,
+  MidenWalletAdapter,
+  SendTransaction,
   CustomTransaction,
-  TransactionType
-
+  TransactionType,
 } from "@demox-labs/miden-wallet-adapter";
 import { stake } from "@/lib/stake";
 
 export default function StakePage() {
-  const [ethAmount, setEthAmount] = useState("")
-  const { wallet, accountId , requestTransaction } = useWallet();
+  const [ethAmount, setEthAmount] = useState("");
+  const { wallet, accountId, requestTransaction } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
   const faucetPublicKey = process.env.NEXT_PUBLIC_FAUCET_PUBLIC_KEY;
   const adminPublicKey = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
 
   const handleMaxClick = () => {
-    setEthAmount("32.0")
-  }
-const stakeTransaction = async (amount: number) => {
+    setEthAmount("32.0");
+  };
+
+  const stakeTransaction = async (amount: number) => {
     if (!wallet) {
       toast.error("Please connect the wallet first");
       return;
@@ -61,7 +63,7 @@ const stakeTransaction = async (amount: number) => {
 
       // await new Promise((r) => setTimeout(r, 10_000));
 
-      const transactionRequest = await stake(accountId ?? " ", Number(ethAmount));
+      let transactionRequest = await stake(accountId ?? " ", Number(ethAmount));
 
       const customTransaction = new CustomTransaction(
         accountId ?? "", // AccountId the transaction request will be executed against
@@ -72,7 +74,7 @@ const stakeTransaction = async (amount: number) => {
       if(customTransaction && requestTransaction) {
        const txId = await requestTransaction({payload: customTransaction, type: TransactionType.Custom});
        console.log("Stake transaction sent with ID:", txId);
-
+       
 
       }
       upsertUser(accountId || "", amount);
@@ -90,13 +92,14 @@ const stakeTransaction = async (amount: number) => {
     }
   };
 
-
   return (
     <div className="max-w-2xl mx-auto">
       {/* Staking Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Stake Ether</h1>
-        <p className="text-gray-600">Stake ETH and receive stETH while staking</p>
+        <p className="text-gray-600">
+          Stake ETH and receive stETH while staking
+        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
@@ -124,7 +127,10 @@ const stakeTransaction = async (amount: number) => {
                   MAX
                 </button>
               </div>
-              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => stakeTransaction(Number(ethAmount))}>
+              <button
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+                onClick={() => stakeTransaction(Number(ethAmount))}
+              >
                 {isLoading ? <ClipLoader color="#FFFFFF" /> : "Proceed"}
               </button>
             </div>
@@ -135,7 +141,9 @@ const stakeTransaction = async (amount: number) => {
                 <span className="text-lg font-semibold">Total 4.3% APR</span>
                 <span className="text-gray-600">+ Mellow points</span>
               </div>
-              <p className="text-sm text-gray-600">New way to support PrivyFi decentralization.</p>
+              <p className="text-sm text-gray-600">
+                New way to support PrivyFi decentralization.
+              </p>
 
               <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                 <div className="flex items-center space-x-2">
@@ -152,8 +160,9 @@ const stakeTransaction = async (amount: number) => {
               </div>
 
               <p className="text-xs text-gray-500">
-                The financial advice information on this site is for informational purposes only and does not constitute
-                financial advice. You are solely responsible for any third-party use.
+                The financial advice information on this site is for
+                informational purposes only and does not constitute financial
+                advice. You are solely responsible for any third-party use.
               </p>
             </div>
 
@@ -186,5 +195,5 @@ const stakeTransaction = async (amount: number) => {
       <StatisticsSection />
       <FAQSection />
     </div>
-  )
+  );
 }
