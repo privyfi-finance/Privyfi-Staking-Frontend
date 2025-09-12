@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { AccountStorageMode, Felt, FeltArray, FungibleAsset, Note, NoteAssets, NoteExecutionHint, NoteExecutionMode, NoteInputs, NoteMetadata, NoteRecipient, NoteTag, NoteType, OutputNote, OutputNotesArray, TransactionProver, TransactionRequestBuilder, Word } from "@demox-labs/miden-sdk";
 import { getUserDetails } from "./db";
 

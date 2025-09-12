@@ -9,8 +9,6 @@ import { toast } from 'react-toastify';
 import { ClipLoader } from "react-spinners";
 import {
   useWallet,
-  MidenWalletAdapter,
-  SendTransaction,
   CustomTransaction,
   TransactionType
 
@@ -63,7 +61,7 @@ const stakeTransaction = async (amount: number) => {
 
       // await new Promise((r) => setTimeout(r, 10_000));
 
-      let transactionRequest = await stake(accountId ?? " ", Number(ethAmount));
+      const transactionRequest = await stake(accountId ?? " ", Number(ethAmount));
 
       const customTransaction = new CustomTransaction(
         accountId ?? "", // AccountId the transaction request will be executed against

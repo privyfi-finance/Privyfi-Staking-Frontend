@@ -1,21 +1,19 @@
-import { NoteType } from "@demox-labs/miden-sdk";
-import { getUserDetails } from "./db";
+// Avoid importing runtime values from the SDK at module scope
+import type { TransactionRequest } from "@demox-labs/miden-sdk";
 
-export async function stake(publicKey: string, amount: number): Promise<any> {
+export async function stake(publicKey: string, amount: number): Promise<TransactionRequest> {
   console.log("staking for user...", publicKey);
 
   if (typeof window === "undefined") {
-    console.warn("webClient() can only run in the browser");
-    return;
+    throw new Error("webClient() can only run in the browser");
   }
 
   // dynamic import → only in the browser, so WASM is loaded client‑side
   const {
     WebClient,
-    AccountStorageMode,
     AccountId,
     // NoteType,
-    TransactionProver,
+    NoteType,
     NoteInputs,
     Note,
     NoteAssets,
@@ -24,18 +22,14 @@ export async function stake(publicKey: string, amount: number): Promise<any> {
     OutputNotesArray,
     NoteExecutionHint,
     NoteTag,
-    NoteExecutionMode,
     NoteMetadata,
     FeltArray,
     Felt,
     FungibleAsset,
     OutputNote,
     AssemblerUtils,
-    StorageSlot,
     TransactionKernel,
     TransactionRequestBuilder,
-    TransactionScript,
-    TransactionScriptInputPairArray,
   } = await import("@demox-labs/miden-sdk");
 
   const nodeEndpoint = "https://rpc.testnet.miden.io:443";
@@ -142,7 +136,7 @@ end
   );
 
   // Building the transaction script which will call the counter contract
-  let txScriptCode = `
+  const txScriptCode = `
    use.external_contract::staking_contract
 use.miden::contracts::wallets::basic->wallet
 use.miden::note
@@ -181,7 +175,7 @@ end
   `;
 
   // Creating the library to call the counter contract
-  let stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
+  const stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
     assembler, // assembler
     "external_contract::staking_contract", // library path to call the contract
     counterContractCode // account code of the contract
@@ -202,7 +196,7 @@ end
     ),
     NoteExecutionHint.always()
   );
-  let serialNumber = Word.newFromFelts([
+  const serialNumber = Word.newFromFelts([
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
@@ -215,7 +209,7 @@ end
     ])
   );
 
-  let note = new Note(
+  const note = new Note(
     assets,
     metadata,
     new NoteRecipient(serialNumber, script, inputs)
@@ -223,7 +217,7 @@ end
 
   const p2idNotes = OutputNote.full(note);
 
-  let transaction = new TransactionRequestBuilder()
+  const transaction = new TransactionRequestBuilder()
     .withOwnOutputNotes(new OutputNotesArray([p2idNotes]))
     .build();
 
