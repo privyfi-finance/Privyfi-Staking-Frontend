@@ -45,21 +45,18 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
   const faucetId = AccountId.fromHex(FAUCET_ID);
   console.log("Faucet ID:", faucetId.isFaucet())
 
-  let counterContractAccount ;
- 
 let faucet = await client.getAccount(faucetId);
   if (!faucet) {
     await client.importAccountById(faucetId);
     await client.syncState();
     console.log("reached here 1");
     
-    counterContractAccount = await client.getAccount(faucetId);
+    faucet = await client.getAccount(faucetId);
+    console.log("faucet import succesful")
     if (!faucet) {
       throw new Error(`Account not found after import: ${faucetId}`);
     }
   }
-
-
 
 
 
