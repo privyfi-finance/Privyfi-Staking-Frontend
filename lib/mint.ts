@@ -39,8 +39,19 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
   console.log("Latest block:", FAUCET_ID, (await client.syncState()).blockNum());
   const faucetId = AccountId.fromHex(FAUCET_ID);
   const faucet = await getOrImportAccount(client, faucetId.toString(), "hex");
-  if (!faucet.isFaucet?.() && typeof faucet.isFaucet === "function") {
-    throw new Error("Configured FAUCET_ID is not a faucet account");
+  try {
+    const checkId = AccountId.fromHex(faucet.id().toString());
+    if (!checkId.isFaucet()) {
+      throw new Error("Configured FAUCET_ID does not refer to a faucet account");
+    }
+  } catch (e) {
+    console.error("FAUCET check failed", {
+      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL,
+      faucetId: FAUCET_ID,
+      resolvedId: faucet.id().toString(),
+      error: e,
+    });
+    throw e;
   }
 
 
@@ -72,7 +83,12 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
     const txResult = await client.newTransaction(faucet.id(), mintTxRequest);
     await client.submitTransaction(txResult);
   } catch (err) {
-    console.error("Minting failed:", err);
+    console.error("Minting failed:", err, {
+      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL,
+      faucetId: FAUCET_ID,
+      userId: USER_ID,
+      amount,
+    });
     throw err; // or handle gracefully
   }
 

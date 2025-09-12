@@ -74,6 +74,20 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
 
   const faucetId = AccountId.fromHex(FAUCET_ID);
   const faucet = await getOrImportAccount(client, faucetId.toString(), "hex");
+  try {
+    const checkId = AccountId.fromHex(faucet.id().toString());
+    if (!checkId.isFaucet()) {
+      throw new Error("Configured FAUCET_ID2 does not refer to a faucet account");
+    }
+  } catch (e) {
+    console.error("FAUCET2 check failed", {
+      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL,
+      faucetId: FAUCET_ID,
+      resolvedId: faucet.id().toString(),
+      error: e,
+    });
+    throw e;
+  }
   console.log("Faucet ID:", faucet.id().toString());
 
   const returnAmount = BigInt(amount * 1000000*2);
