@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to avoid prerendering issues with WASM SDKs
+export const dynamic = "force-dynamic";
+
 import { useState } from "react"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"

@@ -18,8 +18,8 @@ export async function withdraw_in_contract(publicKey: string, amount: number): P
     WebClient,
   } = await import("@demox-labs/miden-sdk");
 
-  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
-  const client = await WebClient.createClient(nodeEndpoint);
+  const rpcUrl = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
+  const client = await WebClient.createClient(rpcUrl);
   //   console.log("Current block number: ", (await client.syncState()).blockNum());
 
   // Counter contract code in Miden Assembly

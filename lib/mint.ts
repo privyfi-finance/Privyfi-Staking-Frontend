@@ -12,9 +12,8 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "";
 
-  const client = await WebClient.createClient(
-    "https://rpc.testnet.miden.io:443"
-  );
+  const rpcUrl = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
+  const client = await WebClient.createClient(rpcUrl);
   // const prover = TransactionProver.newRemoteProver(
   //   "https://tx-prover.testnet.miden.io"
   // );

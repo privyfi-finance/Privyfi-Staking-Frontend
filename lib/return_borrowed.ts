@@ -68,8 +68,8 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   } = await import("@demox-labs/miden-sdk");
 
 
-  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
-  const client = await WebClient.createClient(nodeEndpoint);
+  const rpcUrl = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
+  const client = await WebClient.createClient(rpcUrl);
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID2 || "0xf8359b8753f46a207cb1fc0b50aee6";
 
