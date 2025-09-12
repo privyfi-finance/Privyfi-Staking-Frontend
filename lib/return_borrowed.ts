@@ -93,8 +93,10 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   const returnAmount = BigInt(amount * 1000000*2);
   console.log("Returning", returnAmount, "to user:", USER_ID);
   
+  // Ensure the target user account exists in client state
+  const user = await getOrImportAccount(client, USER_ID, "bech32");
   const mintTxRequest = client.newMintTransactionRequest(
-    AccountId.fromBech32(USER_ID),
+    user.id(),
     faucet.id(),
     NoteType.Public,
     BigInt(returnAmount),

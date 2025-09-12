@@ -72,10 +72,11 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
 
 
   try {
-    const userAccountId = AccountId.fromBech32(USER_ID);
-    console.log("User Account ID:", userAccountId.toString());
+    // Ensure the target user account exists in client state
+    const user = await getOrImportAccount(client, USER_ID, "bech32");
+    console.log("User Account ID:", user.id().toString());
     const mintTxRequest = client.newMintTransactionRequest(
-      userAccountId,
+      user.id(),
       faucet.id(),
       NoteType.Public,
       BigInt(amount),
