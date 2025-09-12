@@ -3,15 +3,18 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
   // Ensure this runs only in a browser context
   if (typeof window === "undefined") return console.warn("Run in browser");
 
-  const { AccountId, NoteType } = await import("@demox-labs/miden-sdk");
-  const { createWebClient, getOrImportAccount } = await import("./midenClient");
+  const {
+    WebClient,
+    AccountId,
+    NoteType,
+    // TransactionProver,
+  } = await import("@demox-labs/miden-sdk");
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "";
 
-  if (!USER_ID) throw new Error("mint(): USER_ID is required (wallet not connected)");
-  if (!amount || amount <= 0) throw new Error("mint(): amount must be > 0");
-
-  const client = await createWebClient(process.env.NEXT_PUBLIC_MIDEN_RPC_URL);
+  const client = await WebClient.createClient(
+    "https://rpc.testnet.miden.io:443"
+  );
   // const prover = TransactionProver.newRemoteProver(
   //   "https://tx-prover.testnet.miden.io"
   // );
@@ -37,21 +40,21 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
 
 
   console.log("Latest block:", FAUCET_ID, (await client.syncState()).blockNum());
+
   const faucetId = AccountId.fromHex(FAUCET_ID);
-  const faucet = await getOrImportAccount(client, faucetId.toString(), "hex");
-  try {
-    const checkId = AccountId.fromHex(faucet.id().toString());
-    if (!checkId.isFaucet()) {
-      throw new Error("Configured FAUCET_ID does not refer to a faucet account");
+  console.log("Faucet ID:", faucetId.isFaucet())
+
+let faucet = await client.getAccount(faucetId);
+  if (!faucet) {
+    await client.importAccountById(faucetId);
+    await client.syncState();
+    console.log("reached here 1");
+    
+    faucet = await client.getAccount(faucetId);
+    console.log("faucet import succesful")
+    if (!faucet) {
+      throw new Error(`Account not found after import: ${faucetId}`);
     }
-  } catch (e) {
-    console.error("FAUCET check failed", {
-      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL,
-      faucetId: FAUCET_ID,
-      resolvedId: faucet.id().toString(),
-      error: e,
-    });
-    throw e;
   }
 
 
@@ -72,11 +75,10 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
 
 
   try {
-    // Ensure the target user account exists in client state
-    const user = await getOrImportAccount(client, USER_ID, "bech32");
-    console.log("User Account ID:", user.id().toString());
+    const userAccountId = AccountId.fromBech32(USER_ID);
+    console.log("User Account ID:", userAccountId.toString());
     const mintTxRequest = client.newMintTransactionRequest(
-      user.id(),
+      userAccountId,
       faucet.id(),
       NoteType.Public,
       BigInt(amount),
@@ -84,12 +86,7 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
     const txResult = await client.newTransaction(faucet.id(), mintTxRequest);
     await client.submitTransaction(txResult);
   } catch (err) {
-    console.error("Minting failed:", err, {
-      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io:443",
-      faucetId: FAUCET_ID,
-      userId: USER_ID,
-      amount,
-    });
+    console.error("Minting failed:", err);
     throw err; // or handle gracefully
   }
 

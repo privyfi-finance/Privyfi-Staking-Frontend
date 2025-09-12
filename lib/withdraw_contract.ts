@@ -8,15 +8,6 @@ export async function withdraw_in_contract(publicKey: string, amount: number): P
     return;
   }
 
-  if (!publicKey) {
-    console.error("withdraw_in_contract(): publicKey is required (wallet not connected)");
-    return;
-  }
-  if (!amount || amount <= 0) {
-    console.error("withdraw_in_contract(): amount must be > 0");
-    return;
-  }
-
   // dynamic import → only in the browser, so WASM is loaded client‑side
   const {
     AccountId,
@@ -27,12 +18,11 @@ export async function withdraw_in_contract(publicKey: string, amount: number): P
     WebClient,
   } = await import("@demox-labs/miden-sdk");
 
-  const rpcUrl = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
-  const client = await WebClient.createClient(rpcUrl);
-  await client.syncState();
+  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
+  const client = await WebClient.createClient(nodeEndpoint);
   //   console.log("Current block number: ", (await client.syncState()).blockNum());
 
-  // Counter contract code in Miden Assembly
+  // Counter contract code in Miden Assembly l
   const counterContractCode = `
     use.miden::account
 use.std::sys

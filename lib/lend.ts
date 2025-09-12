@@ -87,10 +87,12 @@ export async function lend(amount: number): Promise<void> {
   const ADMIN_ID = process.env.ADMIN_ID || "0x2c7713208c2a39107164424992d5c0";
   const FAUCET_ID = process.env.FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
   
-  const rpcUrl = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
-  const proverUrl = process.env.NEXT_PUBLIC_MIDEN_PROVER_URL || "https://tx-prover.testnet.miden.io";
-  const client = await WebClient.createClient(rpcUrl);
-  const prover = TransactionProver.newRemoteProver(proverUrl);
+  const client = await WebClient.createClient(
+    "https://rpc.testnet.miden.io:443",
+  );
+  const prover = TransactionProver.newRemoteProver(
+    "https://tx-prover.testnet.miden.io",
+  );
 
   console.log("Latest block:", (await client.syncState()).blockNum());
 

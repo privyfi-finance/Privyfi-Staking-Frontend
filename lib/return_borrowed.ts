@@ -59,44 +59,37 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   // Ensure this runs only in a browser context
   if (typeof window === "undefined") return console.warn("Run in browser");
 
-  const { AccountId, NoteType } = await import("@demox-labs/miden-sdk");
-  const { createWebClient, getOrImportAccount } = await import("./midenClient");
+  const {
+    WebClient,
+    AccountId,
+    NoteType,
+    // TransactionProver,
+    // AccountStorageMode
+  } = await import("@demox-labs/miden-sdk");
 
 
-  if (!USER_ID) throw new Error("return_borrow(): USER_ID is required (wallet not connected)");
-  if (!amount || amount <= 0) throw new Error("return_borrow(): amount must be > 0");
-
-  const client = await createWebClient(process.env.NEXT_PUBLIC_MIDEN_RPC_URL);
+  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
+  const client = await WebClient.createClient(nodeEndpoint);
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID2 || "0xf8359b8753f46a207cb1fc0b50aee6";
 
   console.log("Latest block:", (await client.syncState()).blockNum());
 
   const faucetId = AccountId.fromHex(FAUCET_ID);
-  const faucet = await getOrImportAccount(client, faucetId.toString(), "hex");
-  try {
-    const checkId = AccountId.fromHex(faucet.id().toString());
-    if (!checkId.isFaucet()) {
-      throw new Error("Configured FAUCET_ID2 does not refer to a faucet account");
-    }
-  } catch (e) {
-    console.error("FAUCET2 check failed", {
-      rpcUrl: process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io:443",
-      faucetId: FAUCET_ID,
-      resolvedId: faucet.id().toString(),
-      error: e,
-    });
-    throw e;
+  const faucet = await client.getAccount(faucetId);
+  if (!faucet) {
+    console.error(
+      "Failed to fetch Faucet's account. Please check the account ID."
+    );
+    return;
   }
   console.log("Faucet ID:", faucet.id().toString());
 
   const returnAmount = BigInt(amount * 1000000*2);
   console.log("Returning", returnAmount, "to user:", USER_ID);
   
-  // Ensure the target user account exists in client state
-  const user = await getOrImportAccount(client, USER_ID, "bech32");
   const mintTxRequest = client.newMintTransactionRequest(
-    user.id(),
+    AccountId.fromBech32(USER_ID),
     faucet.id(),
     NoteType.Public,
     BigInt(returnAmount),
