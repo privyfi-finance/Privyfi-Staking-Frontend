@@ -7,6 +7,8 @@ export async function stake(publicKey: string, amount: number): Promise<Transact
   if (typeof window === "undefined") {
     throw new Error("webClient() can only run in the browser");
   }
+  if (!publicKey) throw new Error("stake(): publicKey is required (wallet not connected)");
+  if (!amount || amount <= 0) throw new Error("stake(): amount must be > 0");
 
   // dynamic import → only in the browser, so WASM is loaded client‑side
   const {
@@ -32,8 +34,9 @@ export async function stake(publicKey: string, amount: number): Promise<Transact
     TransactionRequestBuilder,
   } = await import("@demox-labs/miden-sdk");
 
-  const nodeEndpoint = "https://rpc.testnet.miden.io:443";
+  const nodeEndpoint = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
   const client = await WebClient.createClient(nodeEndpoint);
+  await client.syncState();
   const FAUCET_ID =
     process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
 
@@ -43,8 +46,7 @@ export async function stake(publicKey: string, amount: number): Promise<Transact
     (await client.syncState()).blockNum()
   );
   const faucetId = AccountId.fromHex(FAUCET_ID);
-  console.log("Faucet ID:", faucetId.isFaucet());
-  console.log("Faucet Balance:");
+  console.log("Faucet ID parsed.");
 
   let faucet = await client.getAccount(faucetId);
   if (!faucet) {

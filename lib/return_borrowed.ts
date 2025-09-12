@@ -59,30 +59,21 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   // Ensure this runs only in a browser context
   if (typeof window === "undefined") return console.warn("Run in browser");
 
-  const {
-    WebClient,
-    AccountId,
-    NoteType,
-    // TransactionProver,
-    // AccountStorageMode
-  } = await import("@demox-labs/miden-sdk");
+  const { AccountId, NoteType } = await import("@demox-labs/miden-sdk");
+  const { createWebClient, getOrImportAccount } = await import("./midenClient");
 
 
-  const rpcUrl = process.env.NEXT_PUBLIC_MIDEN_RPC_URL || "https://rpc.testnet.miden.io";
-  const client = await WebClient.createClient(rpcUrl);
+  if (!USER_ID) throw new Error("return_borrow(): USER_ID is required (wallet not connected)");
+  if (!amount || amount <= 0) throw new Error("return_borrow(): amount must be > 0");
+
+  const client = await createWebClient(process.env.NEXT_PUBLIC_MIDEN_RPC_URL);
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID2 || "0xf8359b8753f46a207cb1fc0b50aee6";
 
   console.log("Latest block:", (await client.syncState()).blockNum());
 
   const faucetId = AccountId.fromHex(FAUCET_ID);
-  const faucet = await client.getAccount(faucetId);
-  if (!faucet) {
-    console.error(
-      "Failed to fetch Faucet's account. Please check the account ID."
-    );
-    return;
-  }
+  const faucet = await getOrImportAccount(client, faucetId.toString(), "hex");
   console.log("Faucet ID:", faucet.id().toString());
 
   const returnAmount = BigInt(amount * 1000000*2);
