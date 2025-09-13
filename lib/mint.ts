@@ -7,7 +7,7 @@ export async function mint(USER_ID: string, amount = 10): Promise<void> {
     WebClient,
     AccountId,
     NoteType,
-    // TransactionProver,
+    TransactionProver,
   } = await import("@demox-labs/miden-sdk");
 
   const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "";
@@ -84,7 +84,13 @@ let faucet = await client.getAccount(faucetId);
       BigInt(amount),
     );
     const txResult = await client.newTransaction(faucet.id(), mintTxRequest);
-    await client.submitTransaction(txResult);
+
+    // Use the remote prover in production/static builds to avoid
+    // heavy local proving and potential worker/wasm constraints.
+    const remoteProver = TransactionProver.newRemoteProver(
+      "https://tx-prover.testnet.miden.io"
+    );
+    await client.submitTransaction(txResult, remoteProver);
   } catch (err) {
     console.error("Minting failed:", err);
     throw err; // or handle gracefully
