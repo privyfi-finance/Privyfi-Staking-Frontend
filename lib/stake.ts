@@ -1,19 +1,33 @@
-// Avoid importing runtime values from the SDK at module scope
-import type { TransactionRequest } from "@demox-labs/miden-sdk";
+import {
+  NoteType,
+} from "@demox-labs/miden-sdk";
+import { getUserDetails } from "./db";
 
-export async function stake(publicKey: string, amount: number): Promise<TransactionRequest> {
+export async function stake(publicKey: string, amount: number): Promise<any> {
+
+  (async () => {
+  const dbs = await indexedDB.databases();
+  for (const db of dbs) {
+    await indexedDB.deleteDatabase(db.name || "");
+    console.log(`Deleted database: ${db.name}`);
+  }
+  console.log("All databases deleted.");
+})();
+
   console.log("staking for user...", publicKey);
 
   if (typeof window === "undefined") {
-    throw new Error("webClient() can only run in the browser");
+    console.warn("webClient() can only run in the browser");
+    return;
   }
 
   // dynamic import → only in the browser, so WASM is loaded client‑side
   const {
     WebClient,
+    AccountStorageMode,
     AccountId,
     // NoteType,
-    NoteType,
+    TransactionProver,
     NoteInputs,
     Note,
     NoteAssets,
@@ -22,43 +36,47 @@ export async function stake(publicKey: string, amount: number): Promise<Transact
     OutputNotesArray,
     NoteExecutionHint,
     NoteTag,
+    NoteExecutionMode,
     NoteMetadata,
     FeltArray,
     Felt,
     FungibleAsset,
     OutputNote,
     AssemblerUtils,
+    StorageSlot,
     TransactionKernel,
     TransactionRequestBuilder,
+    TransactionScript,
+    TransactionScriptInputPairArray,
   } = await import("@demox-labs/miden-sdk");
 
   const nodeEndpoint = "https://rpc.testnet.miden.io:443";
   const client = await WebClient.createClient(nodeEndpoint);
-  const FAUCET_ID =
-    process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
 
-  console.log(
-    "Latest block:",
-    FAUCET_ID,
-    (await client.syncState()).blockNum()
-  );
+  await client.syncState();
+  //   console.log("Current block number: ", (await client.syncState()).blockNum());
+  const FAUCET_ID = process.env.NEXT_PUBLIC_FAUCET_ID || "";
+  console.log(FAUCET_ID , "FAUCET_ID");
+  
   const faucetId = AccountId.fromHex(FAUCET_ID);
-  console.log("Faucet ID:", faucetId.isFaucet());
-  console.log("Faucet Balance:");
 
-  let faucet = await client.getAccount(faucetId);
-  if (!faucet) {
-    await client.importAccountById(faucetId);
-    await client.syncState();
-    console.log("reached here 1");
-    faucet = await client.getAccount(faucetId);
-    console.log("faucet import succesful");
-    if (!faucet) {
-      throw new Error(`Account not found after import: ${faucetId}`);
-    }
-  }
-  console.log("Faucet ID:", faucet.id().toString());
 
+  // const faucet = await client.importAccountById(faucetId);
+  // console.log("Faucet ID:", faucetId.isFaucet()); // check id for prefix
+
+  // if (!faucet) {
+  //   console.error(
+  //     "Failed to fetch Faucet's account. Please check the account ID."
+  //   );
+  //   return;
+  // }
+  // console.log("Faucet ID:", faucet.id().toString());
+
+  const prover = TransactionProver.newRemoteProver(
+    "https://tx-prover.testnet.miden.io"
+  );
+
+  // Counter contract code in Miden Assembly
   const counterContractCode = `
 use.miden::account
 use.std::sys
@@ -111,13 +129,11 @@ end
 `;
   // Building the counter contract
   let assembler = TransactionKernel.assembler();
-  console.log("assembler created");
 
   // Counter contract account id on testnet
-  const counterContractId = AccountId.fromHex(
-    "0xab609d955282c9406dcc05c3dc8420" // "mtst1qqugv0myjaprqsqcnlzpyz30pc7pwg8g"
+  const counterContractId = AccountId.fromBech32(
+    "mtst1qp50l89zdnnwgsp4y9yy768zxhcqqk9qwf5"
   );
-  console.log("Counter contract ID");
 
   // Reading the public state of the counter contract from testnet,
   // and importing it into the WebClient
@@ -135,8 +151,9 @@ end
     stakeContractAccount.id().toString()
   );
 
+
   // Building the transaction script which will call the counter contract
-  const txScriptCode = `
+  let txScriptCode = `
    use.external_contract::staking_contract
 use.miden::contracts::wallets::basic->wallet
 use.miden::note
@@ -175,7 +192,7 @@ end
   `;
 
   // Creating the library to call the counter contract
-  const stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
+  let stakeComponentLib = AssemblerUtils.createAccountComponentLibrary(
     assembler, // assembler
     "external_contract::staking_contract", // library path to call the contract
     counterContractCode // account code of the contract
@@ -184,19 +201,17 @@ end
   assembler = assembler.withLibrary(stakeComponentLib);
   const script = assembler.compileNoteScript(txScriptCode);
 
-  const assets = new NoteAssets([
-    new FungibleAsset(faucet.id(), BigInt(amount * 1000000)),
-  ]);
+  const assets = new NoteAssets([new FungibleAsset(faucetId, BigInt(amount*1000000))]);
   const metadata = new NoteMetadata(
     AccountId.fromBech32(publicKey),
     NoteType.Public,
     NoteTag.fromAccountId(
-      AccountId.fromBech32(publicKey)
+      AccountId.fromBech32(publicKey),
       // NoteExecutionMode.newLocal()
     ),
     NoteExecutionHint.always()
   );
-  const serialNumber = Word.newFromFelts([
+  let serialNumber = Word.newFromFelts([
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
     new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
@@ -209,7 +224,7 @@ end
     ])
   );
 
-  const note = new Note(
+  let note = new Note(
     assets,
     metadata,
     new NoteRecipient(serialNumber, script, inputs)
@@ -217,7 +232,7 @@ end
 
   const p2idNotes = OutputNote.full(note);
 
-  const transaction = new TransactionRequestBuilder()
+  let transaction = new TransactionRequestBuilder()
     .withOwnOutputNotes(new OutputNotesArray([p2idNotes]))
     .build();
 
@@ -225,3 +240,9 @@ end
 
   return transaction;
 }
+
+
+
+
+
+

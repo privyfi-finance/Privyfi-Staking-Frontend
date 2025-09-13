@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
+  distDir: 'dist',
 
   webpack: (config, { isServer }) => {
     // Handle WASM files
