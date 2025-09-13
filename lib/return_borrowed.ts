@@ -85,7 +85,7 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   }
   console.log("Faucet ID:", faucet.id().toString());
 
-  const returnAmount = BigInt(amount * 2);
+  const returnAmount = BigInt(amount * 1000000*2);
   console.log("Returning", returnAmount, "to user:", USER_ID);
   
   const mintTxRequest = client.newMintTransactionRequest(
@@ -100,7 +100,7 @@ export async function return_borrow(USER_ID: string, amount: number): Promise<vo
   await client.submitTransaction(txResult);
 
   console.log("Waiting 10 seconds for transaction confirmation...");
-  // await new Promise((resolve) => setTimeout(resolve, 10000));
+  await new Promise((resolve) => setTimeout(resolve, 10000));
   await client.syncState();
 
   console.log("Transaction confirmed. Asset transfer chain completed ✅");
