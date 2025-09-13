@@ -8,7 +8,7 @@ import { ClipLoader } from "react-spinners";
 import {
   useWallet
 } from "@demox-labs/miden-wallet-adapter";
-
+import { deleteConfig } from "@/lib/db";
 
 export default function FaucetPage() {
   const [ethAmount, setEthAmount] = useState("")
@@ -85,6 +85,9 @@ export default function FaucetPage() {
               </div>
               <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => handleMint(accountId ?? " ", Number(ethAmount))}>
                 {isLoading ? <ClipLoader color="#FFFFFF" /> : "Proceed"}
+              </button>
+              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => deleteConfig('FAUCET_ID')}>
+                Delete Faucet
               </button>
             </div>
 
