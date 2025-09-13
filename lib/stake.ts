@@ -40,7 +40,7 @@ export async function stake(
   const client = await WebClient.createClient(nodeEndpoint);
   // const FAUCET_ID =
   //   process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
-  let FAUCET_ID = await getConfig("FAUCET_ID");
+  const FAUCET_ID = await getConfig("FAUCET_ID");
   if(!FAUCET_ID){
     throw new Error("FAUCET_ID not found in DB");
   }
