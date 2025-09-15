@@ -92,7 +92,7 @@ export default function LendPage() {
                   </div>
                   <input
                     type="number"
-                    placeholder="ETH amount"
+                    placeholder="MDT amount"
                     value={ethAmount}
                     onChange={(e) => setEthAmount(e.target.value)}
                     className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"
@@ -146,7 +146,7 @@ export default function LendPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 ETH = 1 stPFY</span>
+                <span>1 stPFY = 1 USDT</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max transaction cost</span>
