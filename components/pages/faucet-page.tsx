@@ -8,7 +8,7 @@ import { ClipLoader } from "react-spinners";
 import {
   useWallet
 } from "@demox-labs/miden-wallet-adapter";
-
+import { deleteConfig } from "@/lib/db";
 
 export default function FaucetPage() {
   const [ethAmount, setEthAmount] = useState("")
@@ -70,7 +70,7 @@ export default function FaucetPage() {
                   </div>
                   <input
                     type="number"
-                    placeholder="stPFY amount"
+                    placeholder="ETH amount"
                     value={ethAmount}
                     onChange={(e) => setEthAmount(e.target.value)}
                     className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"
@@ -85,6 +85,9 @@ export default function FaucetPage() {
               </div>
               <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => handleMint(accountId ?? " ", Number(ethAmount))}>
                 {isLoading ? <ClipLoader color="#FFFFFF" /> : "Proceed"}
+              </button>
+              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => deleteConfig('FAUCET_ID')}>
+                Delete Faucet
               </button>
             </div>
 
@@ -124,7 +127,7 @@ export default function FaucetPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 stPFY = 1 USDT</span>
+                <span>1 ETH = 1 stPFY</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max transaction cost</span>

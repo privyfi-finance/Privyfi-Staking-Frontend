@@ -1,7 +1,11 @@
 // Avoid importing runtime values from the SDK at module scope
 import type { TransactionRequest } from "@demox-labs/miden-sdk";
+import { getConfig } from "./db";
 
-export async function stake(publicKey: string, amount: number): Promise<TransactionRequest> {
+export async function stake(
+  publicKey: string,
+  amount: number
+): Promise<TransactionRequest> {
   console.log("staking for user...", publicKey);
 
   if (typeof window === "undefined") {
@@ -34,9 +38,13 @@ export async function stake(publicKey: string, amount: number): Promise<Transact
 
   const nodeEndpoint = "https://rpc.testnet.miden.io:443";
   const client = await WebClient.createClient(nodeEndpoint);
-  const FAUCET_ID =
-    process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
-
+  // const FAUCET_ID =
+  //   process.env.NEXT_PUBLIC_FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
+  const FAUCET_ID = await getConfig("FAUCET_ID");
+  if(!FAUCET_ID){
+    throw new Error("FAUCET_ID not found in DB");
+  }
+  
   console.log(
     "Latest block:",
     FAUCET_ID,

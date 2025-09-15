@@ -111,7 +111,7 @@ const stakeTransaction = async (amount: number) => {
                   </div>
                   <input
                     type="number"
-                    placeholder="stPFY amount"
+                    placeholder="ETH amount"
                     value={ethAmount}
                     onChange={(e) => setEthAmount(e.target.value)}
                     className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"

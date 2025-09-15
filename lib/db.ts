@@ -76,6 +76,16 @@ export async function setupDatabase() {
       withdrawn_at TIMESTAMP
     );
   `);
+
+  await client.query(`
+  CREATE TABLE IF NOT EXISTS config (
+    key VARCHAR(255) PRIMARY KEY,
+    value TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+  );
+`);
+
   console.log("✅ Users & UserHistory tables are ready");
 }
 
@@ -550,5 +560,50 @@ export async function getUserDetails(walletAddress: string) {
   }
 
   // Return existing user
+  return res.rows[0];
+}
+// ───────────────────────────────────────────────────────────────
+// Config helpers (for faucet id, etc.)
+// ───────────────────────────────────────────────────────────────
+
+export async function setConfig(key: string, value: string) {
+  await setupDatabase();
+  const res = await client.query(
+    `
+      INSERT INTO config (key, value, updated_at)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (key)
+      DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+      RETURNING *;
+    `,
+    [key, value]
+  );
+  console.log(`✅ Config set: ${key} = ${value}`);
+  return res.rows[0];
+}
+
+export async function getConfig(key: string): Promise<string | null> {
+  await setupDatabase();
+  const res = await client.query(
+    `SELECT value FROM config WHERE key = $1 LIMIT 1`,
+    [key]
+  );
+  if (res.rows.length === 0) {
+    console.log(`⚠️ Config key not found: ${key}`);
+    return null;
+  }
+  return res.rows[0].value;
+}
+export async function deleteConfig(key: string) {
+  await setupDatabase();
+  const res = await client.query(
+    `DELETE FROM config WHERE key = $1 RETURNING *`,
+    [key]
+  );
+  if (res.rows.length === 0) {
+    console.log(`⚠️ Config key not found for deletion: ${key}`);
+    return null;
+  }
+  console.log(`🗑️ Config deleted: ${key}`);
   return res.rows[0];
 }
