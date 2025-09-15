@@ -14,7 +14,11 @@ export default function FaucetPage() {
   const [ethAmount, setEthAmount] = useState("")
   const { accountId, wallet } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
-
+  
+  useEffect(() => {
+    deleteConfig("FAUCET_ID");
+  }, []);
+  
   const handleMaxClick = () => {
     setEthAmount("32.0")
   }
@@ -86,10 +90,7 @@ export default function FaucetPage() {
               <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => handleMint(accountId ?? " ", Number(ethAmount))}>
                 {isLoading ? <ClipLoader color="#FFFFFF" /> : "Proceed"}
               </button>
-              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => deleteConfig('FAUCET_ID')}>
-                Delete Faucet
-              </button>
-            </div>
+              </div>
 
             {/* APR Section */}
             <div className="space-y-4">

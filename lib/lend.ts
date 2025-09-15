@@ -1,4 +1,4 @@
-import { lendTokens } from "./db";
+import { getConfig, lendTokens } from "./db";
 
 const P2ID_NOTE_SCRIPT = `
 use.miden::account
@@ -85,13 +85,16 @@ export async function lend(amount: number): Promise<void> {
 
   const USER_ID = process.env.USER_ID || "0xa014b8e02a130e1032b4e6b0824617";
   const ADMIN_ID = process.env.ADMIN_ID || "0x2c7713208c2a39107164424992d5c0";
-  const FAUCET_ID = process.env.FAUCET_ID || "0xf99ba914c814ac200fa49cf9e7e2d0";
-  
+  const FAUCET_ID = await getConfig("FAUCET_ID");
+  if (!FAUCET_ID) {
+    console.error("FAUCET_ID not found in config");
+    return;
+  }
   const client = await WebClient.createClient(
-    "https://rpc.testnet.miden.io:443",
+    "https://rpc.testnet.miden.io:443"
   );
   const prover = TransactionProver.newRemoteProver(
-    "https://tx-prover.testnet.miden.io",
+    "https://tx-prover.testnet.miden.io"
   );
 
   console.log("Latest block:", (await client.syncState()).blockNum());
@@ -104,7 +107,9 @@ export async function lend(amount: number): Promise<void> {
   // const user = await client.newWallet(AccountStorageMode.public(), true);
   const user = await client.getAccount(userId);
   if (!user) {
-    console.error("Failed to fetch User's account. Please check the account ID.");
+    console.error(
+      "Failed to fetch User's account. Please check the account ID."
+    );
     return;
   }
   console.log("User accout ID:", user.id().toString());
@@ -113,7 +118,9 @@ export async function lend(amount: number): Promise<void> {
   // const admin = await client.newWallet(AccountStorageMode.public(), true);
   const admin = await client.getAccount(adminId);
   if (!admin) {
-    console.error("Failed to fetch Admin's account. Please check the account ID.");
+    console.error(
+      "Failed to fetch Admin's account. Please check the account ID."
+    );
     return;
   }
   console.log("Admin accout ID:", admin.id().toString());
@@ -121,7 +128,9 @@ export async function lend(amount: number): Promise<void> {
   const faucetId = AccountId.fromHex(FAUCET_ID);
   const faucet = await client.getAccount(faucetId);
   if (!faucet) {
-    console.error("Failed to fetch Faucet's account. Please check the account ID.");
+    console.error(
+      "Failed to fetch Faucet's account. Please check the account ID."
+    );
     return;
   }
   console.log("Faucet ID:", faucet.id().toString());
@@ -130,74 +139,72 @@ export async function lend(amount: number): Promise<void> {
 
   // ── Create unauthenticated note transfer chain ─────────────────────────────────────────────
 
-    // Determine sender and receiver for this iteration
-    const sender = user;
-    const receiver = admin;
+  // Determine sender and receiver for this iteration
+  const sender = user;
+  const receiver = admin;
 
-    console.log("Sender:", sender.id().toString());
-    console.log("Receiver:", receiver.id().toString());
+  console.log("Sender:", sender.id().toString());
+  console.log("Receiver:", receiver.id().toString());
 
-    const assets = new NoteAssets([new FungibleAsset(faucet.id(), BigInt(amount))]);
-    const metadata = new NoteMetadata(
-      sender.id(),
-      NoteType.Public,
-      NoteTag.fromAccountId(sender.id()),
-      NoteExecutionHint.always(),
-    );
+  const assets = new NoteAssets([
+    new FungibleAsset(faucet.id(), BigInt(amount)),
+  ]);
+  const metadata = new NoteMetadata(
+    sender.id(),
+    NoteType.Public,
+    NoteTag.fromAccountId(sender.id()),
+    NoteExecutionHint.always()
+  );
 
-    const serialNumber = Word.newFromFelts([
-      new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-      new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-      new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-      new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
-    ]);
+  const serialNumber = Word.newFromFelts([
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+    new Felt(BigInt(Math.floor(Math.random() * 0x1_0000_0000))),
+  ]);
 
-    const receiverAcct = AccountId.fromHex(receiver.id().toString());
-    const inputs = new NoteInputs(
-      new FeltArray([receiverAcct.suffix(), receiverAcct.prefix()]),
-    );
+  const receiverAcct = AccountId.fromHex(receiver.id().toString());
+  const inputs = new NoteInputs(
+    new FeltArray([receiverAcct.suffix(), receiverAcct.prefix()])
+  );
 
-    const p2idNote = new Note(
-      assets,
-      metadata,
-      new NoteRecipient(serialNumber, script, inputs),
-    );
+  const p2idNote = new Note(
+    assets,
+    metadata,
+    new NoteRecipient(serialNumber, script, inputs)
+  );
 
-    const outputP2ID = OutputNote.full(p2idNote);
+  const outputP2ID = OutputNote.full(p2idNote);
 
-    console.log("Creating P2ID note...");
-    const transaction = await client.newTransaction(
-      sender.id(),
-      new TransactionRequestBuilder()
-        .withOwnOutputNotes(new OutputNotesArray([outputP2ID]))
-        .build(),
-    );
-    await client.submitTransaction(transaction, prover);
+  console.log("Creating P2ID note...");
+  const transaction = await client.newTransaction(
+    sender.id(),
+    new TransactionRequestBuilder()
+      .withOwnOutputNotes(new OutputNotesArray([outputP2ID]))
+      .build()
+  );
+  await client.submitTransaction(transaction, prover);
 
-    console.log("Consuming P2ID note...");
+  console.log("Consuming P2ID note...");
 
-    const noteIdAndArgs = new NoteAndArgs(p2idNote, null);
+  const noteIdAndArgs = new NoteAndArgs(p2idNote, null);
 
-    const consumeRequest = new TransactionRequestBuilder()
-      .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
-      .build();
+  const consumeRequest = new TransactionRequestBuilder()
+    .withUnauthenticatedInputNotes(new NoteAndArgsArray([noteIdAndArgs]))
+    .build();
 
-    const txExecutionResult = await client.newTransaction(
-      receiver.id(),
-      consumeRequest,
-    );
+  const txExecutionResult = await client.newTransaction(
+    receiver.id(),
+    consumeRequest
+  );
 
-    await client.submitTransaction(txExecutionResult, prover);
+  await client.submitTransaction(txExecutionResult, prover);
 
-    const txId = txExecutionResult
-      .executedTransaction()
-      .id()
-      .toHex()
-      .toString();
+  const txId = txExecutionResult.executedTransaction().id().toHex().toString();
 
-    console.log(
-      `Consumed Note Tx on MidenScan: https://testnet.midenscan.com/tx/${txId}`,
-    );
+  console.log(
+    `Consumed Note Tx on MidenScan: https://testnet.midenscan.com/tx/${txId}`
+  );
 
   console.log("Asset transfer chain completed ✅");
 
