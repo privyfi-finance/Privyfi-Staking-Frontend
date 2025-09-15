@@ -7,7 +7,7 @@ export default function StatisticsSection() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">PrivyFi statistics</h2>
           <div className="flex items-center space-x-1 text-orange-500 text-sm cursor-pointer">
-            <span>View on Etherscan</span>
+            <span>View on midenscan.io</span>
             <ExternalLink className="h-3 w-3" />
           </div>
         </div>

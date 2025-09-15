@@ -80,7 +80,7 @@ export default function WithdawLendPage() {
                   </div>
                   <input
                     type="number"
-                    placeholder="MDT amount"
+                    placeholder="stPFY amount"
                     value={ethAmount}
                     onChange={(e) => setEthAmount(e.target.value)}
                     className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"
