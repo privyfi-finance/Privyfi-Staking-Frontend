@@ -193,7 +193,7 @@ export default function WithdrawalsPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 stPFY = 1 ETH</span>
+                <span>1 stPFY = 1 USDT</span>
               </div>
             </div>
           </div>

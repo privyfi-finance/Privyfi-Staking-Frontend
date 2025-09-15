@@ -111,7 +111,7 @@ const stakeTransaction = async (amount: number) => {
                   </div>
                   <input
                     type="number"
-                    placeholder="ETH amount"
+                    placeholder="PFY amount"
                     value={ethAmount}
                     onChange={(e) => setEthAmount(e.target.value)}
                     className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"
@@ -165,7 +165,7 @@ const stakeTransaction = async (amount: number) => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 ETH = 1 stETH</span>
+                <span>1 USDT = 1 stETH</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max transaction cost</span>
