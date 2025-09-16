@@ -14,11 +14,7 @@ export default function FaucetPage() {
   const [ethAmount, setEthAmount] = useState("")
   const { accountId, wallet } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
-  
-  useEffect(() => {
-    deleteConfig("FAUCET_ID");
-  }, []);
-  
+
   const handleMaxClick = () => {
     setEthAmount("32.0")
   }
@@ -54,6 +50,16 @@ export default function FaucetPage() {
     }
   };
 
+  const handleDeleteFaucet = async () => {
+    try {
+      await deleteConfig('FAUCET_ID');
+      console.log("Faucet ID deleted successfully");
+      toast.success("Faucet ID deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete Faucet ID:", error);
+      toast.error("Failed to delete Faucet ID. Please try again.");
+    }
+  }
   return (
     <div className="max-w-2xl mx-auto">
       {/* Staking Section */}
@@ -74,7 +80,7 @@ export default function FaucetPage() {
                   </div>
                   <input
                     type="number"
-                    placeholder="PFY amount"
+                    placeholder="ETH amount"
                     value={ethAmount}
                     onChange={(e) => setEthAmount(e.target.value)}
                     className="border-0 text-lg font-medium bg-transparent p-0 focus:outline-none w-full"
@@ -90,7 +96,10 @@ export default function FaucetPage() {
               <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => handleMint(accountId ?? " ", Number(ethAmount))}>
                 {isLoading ? <ClipLoader color="#FFFFFF" /> : "Proceed"}
               </button>
-              </div>
+              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium" onClick={() => handleDeleteFaucet()}>
+                Delete Faucet
+              </button>
+            </div>
 
             {/* APR Section */}
             <div className="space-y-4">
@@ -128,7 +137,7 @@ export default function FaucetPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Exchange rate</span>
-                <span>1 USDT = 1 stPFY</span>
+                <span>1 ETH = 1 stPFY</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Max transaction cost</span>
